@@ -2,7 +2,9 @@
 
 namespace App\Service;
 
+use App\Entity\Country;
 use Doctrine\DBAL\Connection;
+use Symfony\Component\HttpKernel\Exception\NotFoundHttpException;
 
 class CountryService
 {
@@ -22,7 +24,13 @@ class CountryService
     public function getCountry(int $id): array
     {
         $sql = "SELECT * FROM country WHERE id = :id";
-        return $this->connection->fetchAssociative($sql, ['id' => $id]);
+        $country = $this->connection->fetchAssociative($sql, ['id' => $id]);
+
+        if (!$country) {
+            throw new \InvalidArgumentException('Country not found.');
+        }
+
+        return $country;
     }
 
     public function createCountry(string $name): array
@@ -34,15 +42,32 @@ class CountryService
         return $this->connection->fetchAssociative($sql, ['name' => $name]);
     }
 
-    public function updateCountry(int $id, string $name): void
+    public function updateCountry(int $id, string $name): Country
     {
         $sql = "UPDATE country SET name = :name WHERE id = :id";
-        $this->connection->executeStatement($sql, ['id' => $id, 'name' => $name]);
+        $affectedRows = $this->connection->executeStatement($sql, ['id' => $id, 'name' => $name]);
+
+        if ($affectedRows === 0) {
+            throw new \InvalidArgumentException('Country not found.');
+        }
+
+        // Récupérer les données du pays après la mise à jour
+        $updatedCountryData = $this->getCountry($id);
+
+        // Construire un objet Country à partir des données récupérées
+        $updatedCountry = new Country();
+        $updatedCountry->setName($updatedCountryData['name']);
+
+        return $updatedCountry;
     }
 
     public function deleteCountry(int $id): void
     {
         $sql = "DELETE FROM country WHERE id = :id";
-        $this->connection->executeStatement($sql, ['id' => $id]);
+        $country = $this->connection->executeStatement($sql, ['id' => $id]);
+
+        if ($country === 0) {
+            throw new \InvalidArgumentException('Country not found.');
+        }
     }
 }
