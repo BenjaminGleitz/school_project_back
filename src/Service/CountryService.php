@@ -4,7 +4,6 @@ namespace App\Service;
 
 use App\Entity\Country;
 use Doctrine\DBAL\Connection;
-use Symfony\Component\HttpKernel\Exception\NotFoundHttpException;
 
 class CountryService
 {
