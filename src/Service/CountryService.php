@@ -14,12 +14,14 @@ class CountryService
         $this->connection = $connection;
     }
 
+    // function to get all countries
     public function getAllCountries(): array
     {
         $sql = "SELECT * FROM country";
         return $this->connection->fetchAllAssociative($sql);
     }
 
+    // function to get a country by id
     public function getCountry(int $id): array
     {
         $sql = "SELECT * FROM country WHERE id = :id";
@@ -32,6 +34,7 @@ class CountryService
         return $country;
     }
 
+    // function to create a new country
     public function createCountry(string $name): array
     {
         $sql = "INSERT INTO country (name) VALUES (:name)";
@@ -41,6 +44,7 @@ class CountryService
         return $this->connection->fetchAssociative($sql, ['name' => $name]);
     }
 
+    // function to update a country
     public function updateCountry(int $id, string $name): Country
     {
         $sql = "UPDATE country SET name = :name WHERE id = :id";
@@ -60,17 +64,15 @@ class CountryService
         return $updatedCountry;
     }
 
-    // Supprimer un pays en fonction de son ID, en supprimant également toutes les villes associées
+    // function to delete a country
     public function deleteCountry(int $id): void
     {
         $this->connection->beginTransaction();
 
         try {
-            // Supprimer toutes les villes associées au pays
             $sql = "DELETE FROM city WHERE country_id = :id";
             $this->connection->executeStatement($sql, ['id' => $id]);
 
-            // Supprimer le pays
             $sql = "DELETE FROM country WHERE id = :id";
             $affectedRows = $this->connection->executeStatement($sql, ['id' => $id]);
 
