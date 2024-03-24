@@ -11,6 +11,7 @@ use Symfony\Component\Routing\Annotation\Route;
 #[Route('/city', name: 'city_')]
 class CityController extends AbstractController
 {
+    //function to get all cities
     #[Route('/', name: 'index', methods: ['GET'])]
     public function index(CityService $cityService): JsonResponse
     {
@@ -28,6 +29,7 @@ class CityController extends AbstractController
         return $this->json($formattedCities, 200);
     }
 
+    //function to get a city by id
     #[Route('/{id}', name: 'show', methods: ['GET'])]
     public function show(CityService $cityService, int $id): JsonResponse
     {
@@ -45,6 +47,7 @@ class CityController extends AbstractController
         }
     }
 
+    //function to create a city
     #[Route('/', name: 'create', methods: ['POST'])]
     public function create(Request $request, CityService $cityService): JsonResponse
     {
@@ -55,20 +58,26 @@ class CityController extends AbstractController
             return $this->json(['error' => 'Missing required fields'], 400);
         }
 
-        // Create the city with the provided data
-        $city = $cityService->create($requestData['name'], $requestData['country_id']);
+        try {
+            // Try to create the city with the provided data
+            $city = $cityService->create($requestData['name'], $requestData['country_id']);
 
-        // Format the response data
-        $formattedCity = [
-            'id' => $city->getId(),
-            'name' => $city->getName(),
-            'country' => $city->getCountry() ? $city->getCountry()->getName() : null,
-        ];
+            // Format the response data
+            $formattedCity = [
+                'id' => $city->getId(),
+                'name' => $city->getName(),
+                'country' => $city->getCountry() ? $city->getCountry()->getName() : null,
+            ];
 
-        // Return the formatted city data in the response
-        return $this->json($formattedCity, 201);
+            // Return the formatted city data in the response
+            return $this->json($formattedCity, 201);
+        } catch (\InvalidArgumentException $e) {
+            // Catch the exception thrown by the CityService and return an error response
+            return $this->json(['error' => $e->getMessage()], 400);
+        }
     }
 
+    //function to update a city
     #[Route('/{id}', name: 'update', methods: ['PUT'])]
     public function update(Request $request, CityService $cityService, int $id): JsonResponse
     {
@@ -93,6 +102,7 @@ class CityController extends AbstractController
         }
     }
 
+    //function to delete a city
     #[Route('/{id}', name: 'delete', methods: ['DELETE'])]
     public function delete(CityService $cityService, int $id): JsonResponse
     {

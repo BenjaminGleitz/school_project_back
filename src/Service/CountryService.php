@@ -60,13 +60,28 @@ class CountryService
         return $updatedCountry;
     }
 
+    // Supprimer un pays en fonction de son ID, en supprimant également toutes les villes associées
     public function deleteCountry(int $id): void
     {
-        $sql = "DELETE FROM country WHERE id = :id";
-        $country = $this->connection->executeStatement($sql, ['id' => $id]);
+        $this->connection->beginTransaction();
 
-        if ($country === 0) {
-            throw new \InvalidArgumentException('Country not found.');
+        try {
+            // Supprimer toutes les villes associées au pays
+            $sql = "DELETE FROM city WHERE country_id = :id";
+            $this->connection->executeStatement($sql, ['id' => $id]);
+
+            // Supprimer le pays
+            $sql = "DELETE FROM country WHERE id = :id";
+            $affectedRows = $this->connection->executeStatement($sql, ['id' => $id]);
+
+            if ($affectedRows === 0) {
+                throw new \InvalidArgumentException('Country not found.');
+            }
+
+            $this->connection->commit();
+        } catch (\Throwable $e) {
+            $this->connection->rollBack();
+            throw $e;
         }
     }
 }
