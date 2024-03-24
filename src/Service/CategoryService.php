@@ -17,6 +17,7 @@ class CategoryService
         $this->entityManager = $entityManager;
     }
 
+    //findAll method
     /**
      * @return Category[]
      */
@@ -25,6 +26,7 @@ class CategoryService
         return $this->categoryRepository->findAll();
     }
 
+    //find method
     public function find(int $id): Category
     {
         $category = $this->categoryRepository->find($id);
@@ -36,6 +38,7 @@ class CategoryService
         return $category;
     }
 
+    //create method
     public function create(string $title, string $image): Category
     {
         $category = new Category();
@@ -48,7 +51,8 @@ class CategoryService
         return $category;
     }
 
-    public function update(int $id, string $title, string $image): Category
+    //update method
+    public function update(int $id, array $requestData): Category
     {
         $category = $this->categoryRepository->find($id);
 
@@ -56,14 +60,20 @@ class CategoryService
             throw new \InvalidArgumentException('Category not found.');
         }
 
-        $category->setTitle($title);
-        $category->setImage($image);
+        if (isset($requestData['title'])) {
+            $category->setTitle($requestData['title']);
+        }
+
+        if (isset($requestData['image'])) {
+            $category->setImage($requestData['image']);
+        }
 
         $this->entityManager->flush();
 
         return $category;
     }
 
+    //delete method
     public function delete(int $id): void
     {
         $category = $this->categoryRepository->find($id);
