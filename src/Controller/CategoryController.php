@@ -60,7 +60,7 @@ class CategoryController extends AbstractController
             $category = $categoryService->update($id, $title, $image);
             return $this->json($category);
         } catch (\InvalidArgumentException $e) {
-            return $this->json(['error' => $e->getMessage()], 400);
+            return $this->json(['error' => $e->getMessage()], 404);
         }
     }
 

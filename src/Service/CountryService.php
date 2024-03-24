@@ -3,29 +3,33 @@
 namespace App\Service;
 
 use App\Entity\Country;
-use Doctrine\DBAL\Connection;
+use App\Repository\CountryRepository;
+use Doctrine\ORM\EntityManagerInterface;
 
 class CountryService
 {
-    private $connection;
+    private $countryRepository;
+    private $entityManager;
 
-    public function __construct(Connection $connection)
+    public function __construct(CountryRepository $countryRepository, EntityManagerInterface $entityManager)
     {
-        $this->connection = $connection;
+        $this->countryRepository = $countryRepository;
+        $this->entityManager = $entityManager;
     }
 
-    // function to get all countries
-    public function getAllCountries(): array
+    //action to get all countries
+    /**
+     * @return Country[]
+     */
+    public function findAll(): array
     {
-        $sql = "SELECT * FROM country";
-        return $this->connection->fetchAllAssociative($sql);
+        return $this->countryRepository->findAll();
     }
 
-    // function to get a country by id
-    public function getCountry(int $id): array
+    //action to get a country by id
+    public function find(int $id): Country
     {
-        $sql = "SELECT * FROM country WHERE id = :id";
-        $country = $this->connection->fetchAssociative($sql, ['id' => $id]);
+        $country = $this->countryRepository->find($id);
 
         if (!$country) {
             throw new \InvalidArgumentException('Country not found.');
@@ -34,56 +38,44 @@ class CountryService
         return $country;
     }
 
-    // function to create a new country
-    public function createCountry(string $name): array
+    //action to create a country
+    public function create(string $name): Country
     {
-        $sql = "INSERT INTO country (name) VALUES (:name)";
-        $this->connection->executeStatement($sql, ['name' => $name]);
+        $country = new Country();
+        $country->setName($name);
 
-        $sql = "SELECT * FROM country WHERE name = :name";
-        return $this->connection->fetchAssociative($sql, ['name' => $name]);
+        $this->entityManager->persist($country);
+        $this->entityManager->flush();
+
+        return $country;
     }
 
-    // function to update a country
-    public function updateCountry(int $id, string $name): Country
+    //action to update a country
+    public function update(int $id, string $name): Country
     {
-        $sql = "UPDATE country SET name = :name WHERE id = :id";
-        $affectedRows = $this->connection->executeStatement($sql, ['id' => $id, 'name' => $name]);
+        $country = $this->countryRepository->find($id);
 
-        if ($affectedRows === 0) {
+        if (!$country) {
             throw new \InvalidArgumentException('Country not found.');
         }
 
-        // Récupérer les données du pays après la mise à jour
-        $updatedCountryData = $this->getCountry($id);
+        $country->setName($name);
 
-        // Construire un objet Country à partir des données récupérées
-        $updatedCountry = new Country();
-        $updatedCountry->setName($updatedCountryData['name']);
+        $this->entityManager->flush();
 
-        return $updatedCountry;
+        return $country;
     }
 
-    // function to delete a country
-    public function deleteCountry(int $id): void
+    //action to delete a country and all its cities
+    public function delete(int $id): void
     {
-        $this->connection->beginTransaction();
+        $country = $this->countryRepository->find($id);
 
-        try {
-            $sql = "DELETE FROM city WHERE country_id = :id";
-            $this->connection->executeStatement($sql, ['id' => $id]);
-
-            $sql = "DELETE FROM country WHERE id = :id";
-            $affectedRows = $this->connection->executeStatement($sql, ['id' => $id]);
-
-            if ($affectedRows === 0) {
-                throw new \InvalidArgumentException('Country not found.');
-            }
-
-            $this->connection->commit();
-        } catch (\Throwable $e) {
-            $this->connection->rollBack();
-            throw $e;
+        if (!$country) {
+            throw new \InvalidArgumentException('Country not found.');
         }
+
+        $this->entityManager->remove($country);
+        $this->entityManager->flush();
     }
 }

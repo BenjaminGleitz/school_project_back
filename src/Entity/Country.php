@@ -6,6 +6,8 @@ use App\Repository\CountryRepository;
 use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\Collection;
 use Doctrine\ORM\Mapping as ORM;
+use Symfony\Component\Serializer\Annotation\Ignore;
+use Symfony\Component\Validator\Constraints as Assert;
 
 #[ORM\Entity(repositoryClass: CountryRepository::class)]
 class Country
@@ -16,9 +18,12 @@ class Country
     private ?int $id = null;
 
     #[ORM\Column(length: 255)]
+    #[Assert\NotBlank(message: "Name cannot be blank")]
+    #[Assert\Length(max: 255, maxMessage: "Name cannot be longer than {{ limit }} characters")]
     private ?string $name = null;
 
     #[ORM\OneToMany(targetEntity: City::class, mappedBy: 'country', cascade: ['remove'])]
+    #[Ignore]
     private Collection $cities;
 
     public function __construct()
