@@ -36,11 +36,13 @@ class CountryController extends AbstractController
     #[Route('/', name: 'create', methods: ['POST'])]
     public function create(Request $request, CountryService $countryService): JsonResponse
     {
-        $data = json_decode($request->getContent(), true);
-        $name = $data['name'] ?? '';
+        $requestData = json_decode($request->getContent(), true);
+        if (!isset($requestData['name'])) {
+            return $this->json(['error' => 'Missing required fields'], 400);
+        }
 
         try {
-            $category = $countryService->create($name);
+            $category = $countryService->create($requestData['name']);
             return $this->json($category, 201);
         } catch (\InvalidArgumentException $e) {
             return $this->json(['error' => $e->getMessage()], 400);
@@ -51,11 +53,14 @@ class CountryController extends AbstractController
     #[Route('/{id}', name: 'update', methods: ['PUT'])]
     public function update(Request $request, CountryService $countryService, int $id): JsonResponse
     {
-        $data = json_decode($request->getContent(), true);
-        $name = $data['name'] ?? '';
+        $requestData = json_decode($request->getContent(), true);
+
+        if (!isset($requestData['name'])) {
+            return $this->json(['error' => 'Missing required fields'], 400);
+        }
 
         try {
-            $country = $countryService->update($id, $name);
+            $country = $countryService->update($id, $requestData['name']);
             return $this->json($country);
         } catch (\InvalidArgumentException $e) {
             return $this->json(['error' => $e->getMessage()], 404);

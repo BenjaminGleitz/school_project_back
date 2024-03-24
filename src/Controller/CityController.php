@@ -83,7 +83,6 @@ class CityController extends AbstractController
     {
         $requestData = json_decode($request->getContent(), true);
 
-        // Check if the required fields are provided in the request
         if (!isset($requestData['name'], $requestData['country_id'])) {
             return $this->json(['error' => 'Missing required fields'], 400);
         }
@@ -98,7 +97,7 @@ class CityController extends AbstractController
 
             return $this->json($formattedCity, 200);
         } catch (\InvalidArgumentException $e) {
-            return $this->json(['error' => $e->getMessage()], 400);
+            return $this->json(['error' => $e->getMessage()], 404); // Retourner 404 si la ville n'est pas trouvée
         }
     }
 
@@ -110,7 +109,7 @@ class CityController extends AbstractController
             $cityService->delete($id);
             return new JsonResponse(null, 204);
         } catch (\InvalidArgumentException $e) {
-            return $this->json(['error' => $e->getMessage()], 400);
+            return $this->json(['error' => $e->getMessage()], 404);
         }
     }
 }

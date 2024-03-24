@@ -36,12 +36,14 @@ class CategoryController extends AbstractController
     #[Route('/', name: 'create', methods: ['POST'])]
     public function create(Request $request, CategoryService $categoryService): JsonResponse
     {
-        $data = json_decode($request->getContent(), true);
-        $title = $data['title'] ?? '';
-        $image = $data['image'] ?? '';
+        $requestData = json_decode($request->getContent(), true);
+
+        if (!isset($requestData['title'], $requestData['image'])) {
+            return $this->json(['error' => 'Missing required fields'], 400);
+        }
 
         try {
-            $category = $categoryService->create($title, $image);
+            $category = $categoryService->create($requestData['title'], $requestData['image']);
             return $this->json($category, 201);
         } catch (\InvalidArgumentException $e) {
             return $this->json(['error' => $e->getMessage()], 400);
@@ -49,20 +51,19 @@ class CategoryController extends AbstractController
     }
 
     //action to update a category
-    #[Route('/{id}', name: 'update', methods: ['PUT'])]
+    #[Route('/{id}', name: 'update', methods: ['PATCH'])]
     public function update(Request $request, CategoryService $categoryService, int $id): JsonResponse
     {
-        $data = json_decode($request->getContent(), true);
-        $title = $data['title'] ?? '';
-        $image = $data['image'] ?? '';
+        $requestData = json_decode($request->getContent(), true);
 
         try {
-            $category = $categoryService->update($id, $title, $image);
+            $category = $categoryService->update($id, $requestData);
             return $this->json($category);
         } catch (\InvalidArgumentException $e) {
-            return $this->json(['error' => $e->getMessage()], 404);
+            return $this->json(['error' => $e->getMessage()], 400);
         }
     }
+
 
     //action to delete a category
     #[Route('/{id}', name: 'delete', methods: ['DELETE'])]
