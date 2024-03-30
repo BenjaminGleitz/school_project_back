@@ -2,78 +2,90 @@
 
 namespace App\Controller;
 
+use App\Entity\Category;
 use App\Service\CategoryService;
-use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
-use Symfony\Component\Routing\Attribute\Route;
+use Symfony\Component\HttpKernel\Exception\NotFoundHttpException;
+use Symfony\Component\Routing\Annotation\Route;
+use Symfony\Component\Serializer\SerializerInterface;
+use Symfony\Component\Validator\Validator\ValidatorInterface;
+use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 
 #[Route('/category', name: 'category_')]
 class CategoryController extends AbstractController
 {
-    //action to get all categories
     #[Route('/', name: 'index', methods: ['GET'])]
-    public function index(CategoryService $categoryService): JsonResponse
+    public function index(CategoryService $categoryService, SerializerInterface $serializer): JsonResponse
     {
-        $categories = $categoryService->findAll();
-
-        return $this->json($categories);
+        try {
+            $categories = $categoryService->findAll();
+            $data = $serializer->serialize($categories, 'json', ['groups' => 'getCategory']);
+            return new JsonResponse($data, 200, [], true);
+        } catch (\Exception $e) {
+            return $this->json(['error' => $e->getMessage()], 500);
+        }
     }
 
-    //action to get a category by id
     #[Route('/{id}', name: 'show', methods: ['GET'])]
-    public function show(CategoryService $categoryService, int $id): JsonResponse
+    public function show(CategoryService $categoryService, SerializerInterface $serializer, int $id): JsonResponse
     {
         try {
             $category = $categoryService->find($id);
-            return $this->json($category);
-        } catch (\InvalidArgumentException $e) {
+            $jsonContent = $serializer->serialize($category, 'json');
+            return new JsonResponse($jsonContent, 200, [], true);
+        } catch (NotFoundHttpException $e) {
             return $this->json(['error' => $e->getMessage()], 404);
+        } catch (\Exception $e) {
+            return $this->json(['error' => $e->getMessage()], 500);
         }
     }
 
-    //action to create a category
     #[Route('/', name: 'create', methods: ['POST'])]
-    public function create(Request $request, CategoryService $categoryService): JsonResponse
+    public function create(Request $request, SerializerInterface $serializer, ValidatorInterface $validator, CategoryService $categoryService): JsonResponse
     {
-        $requestData = json_decode($request->getContent(), true);
-
-        if (!isset($requestData['title'], $requestData['image'])) {
-            return $this->json(['error' => 'Missing required fields'], 400);
-        }
-
         try {
-            $category = $categoryService->create($requestData['title'], $requestData['image']);
-            return $this->json($category, 201);
-        } catch (\InvalidArgumentException $e) {
-            return $this->json(['error' => $e->getMessage()], 400);
+            $createdCategory = $categoryService->create($request->getContent());
+            $jsonContent = $serializer->serialize($createdCategory, 'json', ['groups' => 'getCategory']);
+            $violations = $validator->validate($createdCategory);
+            if (count($violations) > 0) {
+                $errors = [];
+                foreach ($violations as $violation) {
+                    $errors[$violation->getPropertyPath()] = $violation->getMessage();
+                }
+                return $this->json($errors, 400);
+            }
+            return new JsonResponse($jsonContent, 201, [], true);
+        } catch (\Exception $e) {
+            return $this->json(['error' => $e->getMessage()], 500);
         }
     }
 
-    //action to update a category
     #[Route('/{id}', name: 'update', methods: ['PATCH'])]
-    public function update(Request $request, CategoryService $categoryService, int $id): JsonResponse
+    public function update(Request $request, SerializerInterface $serializer, CategoryService $categoryService, ValidatorInterface $validator, int $id): JsonResponse
     {
-        $requestData = json_decode($request->getContent(), true);
-
         try {
-            $category = $categoryService->update($id, $requestData);
-            return $this->json($category);
-        } catch (\InvalidArgumentException $e) {
-            return $this->json(['error' => $e->getMessage()], 400);
+            $updatedCategory = $categoryService->update($id, $request->getContent());
+            $jsonContent = $serializer->serialize($updatedCategory, 'json', ['groups' => 'getCategory']);
+
+            return new JsonResponse($jsonContent, 200, [], true);
+        } catch (NotFoundHttpException $e) {
+            return $this->json(['error' => $e->getMessage()], 404);
+        } catch (\Exception $e) {
+            return $this->json(['error' => $e->getMessage()], 500);
         }
     }
 
-
-    //action to delete a category
     #[Route('/{id}', name: 'delete', methods: ['DELETE'])]
     public function delete(CategoryService $categoryService, int $id): JsonResponse
     {
         try {
             $categoryService->delete($id);
-            return new JsonResponse(null, 204);
-        } catch (\InvalidArgumentException $e) {
-            return $this->json(['error' => $e->getMessage()], 400);
+            return $this->json(['message' => 'Category deleted successfully.'], 204);
+        } catch (NotFoundHttpException $e) {
+            return $this->json(['error' => $e->getMessage()], 404);
+        } catch (\Exception $e) {
+            return $this->json(['error' => $e->getMessage()], 500);
         }
     }
 }

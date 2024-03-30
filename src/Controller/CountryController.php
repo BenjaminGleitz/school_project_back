@@ -2,80 +2,96 @@
 
 namespace App\Controller;
 
+use App\Entity\Country;
 use App\Service\CountryService;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
+use Symfony\Component\HttpKernel\Exception\NotFoundHttpException;
 use Symfony\Component\Routing\Annotation\Route;
+use Symfony\Component\Serializer\Exception\CircularReferenceException;
+use Symfony\Component\Serializer\SerializerInterface;
+use Symfony\Component\Validator\Validator\ValidatorInterface;
 
 #[Route('/country', name: 'country_')]
 class CountryController extends AbstractController
 {
-    //action to get all countries
+    //function to get all countries
     #[Route('/', name: 'index', methods: ['GET'])]
-    public function index(CountryService $countryService): JsonResponse
+    public function index(CountryService $countryService, SerializerInterface $serializer): JsonResponse
     {
-        $countries = $countryService->findAll();
-
-        return $this->json($countries);
+        try {
+            $countries = $countryService->findAll();
+            $data = $serializer->serialize($countries, 'json', ['groups' => 'getCountry']);
+            return new JsonResponse($data, 200, [], true);
+        } catch (\Exception $e) {
+            return $this->json(['error' => $e->getMessage()], 500);
+        }
     }
 
-    //action to get a country by id
+    //function to get a country by id
     #[Route('/{id}', name: 'show', methods: ['GET'])]
-    public function show(CountryService $countryService, int $id): JsonResponse
+    public function show(SerializerInterface $serializer, CountryService $countryService, int $id): JsonResponse
     {
         try {
             $country = $countryService->find($id);
-            return $this->json($country);
-        } catch (\InvalidArgumentException $e) {
+            $jsonContent = $serializer->serialize($country, 'json', ['groups' => 'getCountry']);
+            return new JsonResponse($jsonContent, 200, [], true);
+        } catch (NotFoundHttpException $e) {
             return $this->json(['error' => $e->getMessage()], 404);
+        } catch (\Exception $e) {
+            return $this->json(['error' => $e->getMessage()], 500);
         }
     }
 
-    //action to create a country
+    //function to create a country
     #[Route('/', name: 'create', methods: ['POST'])]
-    public function create(Request $request, CountryService $countryService): JsonResponse
+    public function create(Request $request, CountryService $countryService, SerializerInterface $serializer, ValidatorInterface $validator): JsonResponse
     {
-        $requestData = json_decode($request->getContent(), true);
-        if (!isset($requestData['name'])) {
-            return $this->json(['error' => 'Missing required fields'], 400);
-        }
-
         try {
-            $category = $countryService->create($requestData['name']);
-            return $this->json($category, 201);
-        } catch (\InvalidArgumentException $e) {
-            return $this->json(['error' => $e->getMessage()], 400);
+            $createdCountry = $countryService->create($request->getContent());
+            $jsonContent = $serializer->serialize($createdCountry, 'json', ['groups' => 'getCountry']);
+            $violations = $validator->validate($createdCountry);
+            if (count($violations) > 0) {
+                $errors = [];
+                foreach ($violations as $violation) {
+                    $errors[$violation->getPropertyPath()] = $violation->getMessage();
+                }
+                return $this->json($errors, 400);
+            }
+            return new JsonResponse($jsonContent, 201, [], true);
+        } catch (\Exception $e) {
+            return $this->json(['error' => $e->getMessage()], 500);
         }
     }
 
-    //action to update a country
-    #[Route('/{id}', name: 'update', methods: ['PUT'])]
-    public function update(Request $request, CountryService $countryService, int $id): JsonResponse
+    //function to update a country
+    #[Route('/{id}', name: 'update', methods: ['PATCH'])]
+    public function update(int $id, Request $request, CountryService $countryService, SerializerInterface $serializer, ValidatorInterface $validator): JsonResponse
     {
-        $requestData = json_decode($request->getContent(), true);
-
-        if (!isset($requestData['name'])) {
-            return $this->json(['error' => 'Missing required fields'], 400);
-        }
-
         try {
-            $country = $countryService->update($id, $requestData['name']);
-            return $this->json($country);
-        } catch (\InvalidArgumentException $e) {
+            $updatedCountry = $countryService->update($id, $request->getContent());
+            $jsonContent = $serializer->serialize($updatedCountry, 'json', ['groups' => 'getCountry']);
+
+            return new JsonResponse($jsonContent, 200, [], true);
+        } catch (NotFoundHttpException $e) {
             return $this->json(['error' => $e->getMessage()], 404);
+        } catch (\Exception $e) {
+            return $this->json(['error' => $e->getMessage()], 500);
         }
     }
 
-    //action to delete a country
+    //function to delete a country
     #[Route('/{id}', name: 'delete', methods: ['DELETE'])]
-    public function delete(CountryService $countryService, int $id): JsonResponse
+    public function delete(int $id, CountryService $countryService): JsonResponse
     {
         try {
             $countryService->delete($id);
-            return new JsonResponse(null, 204);
-        } catch (\InvalidArgumentException $e) {
+            return $this->json(['message' => 'Country deleted successfully'], 204);
+        } catch (NotFoundHttpException $e) {
             return $this->json(['error' => $e->getMessage()], 404);
+        } catch (\Exception $e) {
+            return $this->json(['error' => $e->getMessage()], 500);
         }
     }
 }
