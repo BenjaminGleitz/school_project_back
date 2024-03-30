@@ -6,6 +6,7 @@ use App\Repository\EventRepository;
 use Doctrine\DBAL\Types\Types;
 use Doctrine\ORM\Mapping as ORM;
 use Symfony\Component\Serializer\Annotation\Groups;
+use Symfony\Component\Validator\Constraints as Assert;
 
 #[ORM\Entity(repositoryClass: EventRepository::class)]
 class Event
@@ -13,25 +14,36 @@ class Event
     #[ORM\Id]
     #[ORM\GeneratedValue]
     #[ORM\Column]
+    #[Groups(["getCategory", "getEvent"])]
     private ?int $id = null;
 
     #[ORM\Column(length: 255)]
-    #[Groups(["getCategory"])]
+    #[Groups(["getCategory", "getEvent"])]
+    #[Assert\NotBlank(message: 'Title is required.')]
+    #[Assert\Length(max: 50, maxMessage: 'Title is too long.')]
     private ?string $title = null;
 
     #[ORM\Column(type: Types::TEXT, nullable: true)]
-    #[Groups(["getCategory"])]
+    #[Groups(["getCategory", "getEvent"])]
+    #[Assert\NotBlank(message: 'Description is required.')]
     private ?string $description = null;
 
     #[ORM\ManyToOne(inversedBy: 'events')]
     #[ORM\JoinColumn(nullable: false)]
+    #[Groups(["getCategory", "getEvent"])]
+    #[Assert\NotBlank(message: 'City is required.')]
     private ?City $city = null;
 
     #[ORM\ManyToOne(inversedBy: 'events')]
     #[ORM\JoinColumn(nullable: false)]
+    #[Groups(["getEvent"])]
+    #[Assert\NotBlank(message: 'Category is required.')]
     private ?Category $category = null;
 
     #[ORM\Column]
+    #[Groups(["getCategory", "getEvent"])]
+    #[Assert\NotBlank(message: 'Start date is required.')]
+    #[Assert\GreaterThan('today', message: 'Start date must be in the future.')]
     private ?\DateTimeImmutable $start_at = null;
 
     public function getId(): ?int

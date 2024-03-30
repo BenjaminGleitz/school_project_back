@@ -7,16 +7,22 @@ use App\Entity\City;
 use App\Entity\Event;
 use App\Repository\EventRepository;
 use Doctrine\ORM\EntityManagerInterface;
+use Symfony\Component\HttpKernel\Exception\BadRequestHttpException;
+use Symfony\Component\HttpKernel\Exception\NotFoundHttpException;
 
 class EventService
 {
     private $eventRepository;
     private $entityManager;
+    private $cityService;
+    private $categoryService;
 
-    public function __construct(EventRepository $eventRepository, EntityManagerInterface $entityManager)
+    public function __construct(EventRepository $eventRepository, EntityManagerInterface $entityManager, CityService $cityService, CategoryService $categoryService)
     {
         $this->eventRepository = $eventRepository;
         $this->entityManager = $entityManager;
+        $this->cityService = $cityService;
+        $this->categoryService = $categoryService;
     }
 
     public function findAll(): array
@@ -29,31 +35,30 @@ class EventService
         $event = $this->eventRepository->find($id);
 
         if (!$event) {
-            throw new \InvalidArgumentException('Event not found.');
+            throw new NotFoundHttpException('Event not found.');
         }
 
         return $event;
     }
 
-    public function create(string $title, string $description, int $cityId, int $categoryId, \DateTimeImmutable $startAt): Event
+    public function create(string $requestData): Event
     {
-        $city = $this->getCityById($cityId);
-        $category = $this->getCategoryById($categoryId);
+        $requestData = json_decode($requestData, true);
 
-        if (!$city) {
-            throw new \InvalidArgumentException('The specified city does not exist.');
-        }
-
-        if (!$category) {
-            throw new \InvalidArgumentException('The specified category does not exist.');
+        if (empty($requestData['title']) || empty($requestData['start_at']) || empty($requestData['city_id']) || empty($requestData['category_id'])) {
+            throw new BadRequestHttpException('Missing required data.');
         }
 
         $event = new Event();
-        $event->setTitle($title);
-        $event->setDescription($description);
-        $event->setCity($city);
-        $event->setCategory($category); // Modification ici
-        $event->setStartAt($startAt);
+        $event->setTitle($requestData['title']);
+        $event->setDescription($requestData['description'] ?? null);
+        $event->setStartAt(new \DateTimeImmutable($requestData['start_at']));
+
+        $cityId = $this->getCityById($requestData['city_id']);
+        $event->setCity($cityId);
+
+        $categoryId = $this->getCategoryById($requestData['category_id']);
+        $event->setCategory($categoryId);
 
         $this->entityManager->persist($event);
         $this->entityManager->flush();
@@ -61,14 +66,59 @@ class EventService
         return $event;
     }
 
-
-    public function getCityById(int $cityId): ?City
+    public function getCityById(int $id): City
     {
-        return $this->entityManager->getRepository(City::class)->find($cityId);
+        if (!$this->cityService->find($id)) {
+            throw new NotFoundHttpException('City not found.');
+        }
+
+        return $this->cityService->find($id);
     }
 
-    public function getCategoryById(int $categoryId): ?Category
+    public function getCategoryById(int $id): Category
     {
-        return $this->entityManager->getRepository(Category::class)->find($categoryId);
+        if (!$this->categoryService->find($id)) {
+            throw new NotFoundHttpException('Category not found.');
+        }
+
+        return $this->categoryService->find($id);
+    }
+
+    public function update(int $id, string $requestData): Event
+    {
+        $requestData = json_decode($requestData, true);
+        $event = $this->find($id);
+
+        if (!empty($requestData['title'])) {
+            $event->setTitle($requestData['title']);
+        }
+        if (!empty($requestData['description'])) {
+            $event->setDescription($requestData['description']);
+        }
+        if (!empty($requestData['start_at'])) {
+            $event->setStartAt(new \DateTimeImmutable($requestData['start_at']));
+        }
+        if (!empty($requestData['city_id'])) {
+            $event->setCity($this->entityManager->getReference('App\Entity\City', $requestData['city_id']));
+        }
+        if (!empty($requestData['category_id'])) {
+            $event->setCategory($this->entityManager->getReference('App\Entity\Category', $requestData['category_id']));
+        }
+
+        $this->entityManager->flush();
+
+        return $event;
+    }
+
+    public function delete(int $id): void
+    {
+        $event = $this->find($id);
+
+        if (!$event) {
+            throw new NotFoundHttpException('Event not found.');
+        }
+
+        $this->entityManager->remove($event);
+        $this->entityManager->flush();
     }
 }
