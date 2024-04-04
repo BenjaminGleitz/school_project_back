@@ -2,8 +2,8 @@
 
 namespace App\Controller;
 
-use App\Entity\City;
-use App\Service\CityService;
+use App\Entity\Event;
+use App\Service\EventService;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
@@ -13,29 +13,27 @@ use Symfony\Component\Serializer\Exception\CircularReferenceException;
 use Symfony\Component\Serializer\SerializerInterface;
 use Symfony\Component\Validator\Validator\ValidatorInterface;
 
-#[Route('/city', name: 'city_')]
-class CityController extends AbstractController
+#[Route('/event', name: 'event_')]
+class EventController extends AbstractController
 {
-    //function to get all cities
     #[Route('/', name: 'index', methods: ['GET'])]
-    public function index(CityService $cityService, SerializerInterface $serializer): JsonResponse
+    public function index(EventService $eventService, SerializerInterface $serializer): JsonResponse
     {
         try {
-            $city = $cityService->findAll();
-            $data = $serializer->serialize($city, 'json', ['groups' => 'getCity']);
+            $events = $eventService->findAll();
+            $data = $serializer->serialize($events, 'json', ['groups' => 'getEvent']);
             return new JsonResponse($data, 200, [], true);
         } catch (\Exception $e) {
             return $this->json(['error' => $e->getMessage()], 500);
         }
     }
 
-    //function to get a city by id
     #[Route('/{id}', name: 'show', methods: ['GET'])]
-    public function show(SerializerInterface $serializer, CityService $cityService, int $id): JsonResponse
+    public function show(SerializerInterface $serializer, EventService $eventService, int $id): JsonResponse
     {
         try {
-            $city = $cityService->find($id);
-            $jsonContent = $serializer->serialize($city, 'json', ['groups' => 'getCity']);
+            $event = $eventService->find($id);
+            $jsonContent = $serializer->serialize($event, 'json', ['groups' => 'getEvent']);
             return new JsonResponse($jsonContent, 200, [], true);
         } catch (NotFoundHttpException $e) {
             return $this->json(['error' => $e->getMessage()], 404);
@@ -44,34 +42,25 @@ class CityController extends AbstractController
         }
     }
 
-    //function to create a city
     #[Route('/', name: 'create', methods: ['POST'])]
-    public function create(Request $request, CityService $cityService, SerializerInterface $serializer, ValidatorInterface $validator): JsonResponse
+    public function create(Request $request, EventService $eventService, SerializerInterface $serializer): JsonResponse
     {
         try {
-            $createdCity = $cityService->create($request->getContent());
-            $jsonContent = $serializer->serialize($createdCity, 'json', ['groups' => 'getCity']);
-            $violations = $validator->validate($createdCity);
-            if (count($violations) > 0) {
-                $errors = [];
-                foreach ($violations as $violation) {
-                    $errors[$violation->getPropertyPath()] = $violation->getMessage();
-                }
-                return $this->json($errors, 400);
-            }
+            $createdEvent = $eventService->create($request->getContent());
+            $jsonContent = $serializer->serialize($createdEvent, 'json', ['groups' => 'getEvent']);
             return new JsonResponse($jsonContent, 201, [], true);
         } catch (\Exception $e) {
             return $this->json(['error' => $e->getMessage()], 500);
         }
     }
 
-    //function to update a city
     #[Route('/{id}', name: 'update', methods: ['PATCH'])]
-    public function update(int $id, Request $request, CityService $cityService, SerializerInterface $serializer, ValidatorInterface $validator): JsonResponse
+    public function update(int $id, Request $request, EventService $eventService, SerializerInterface $serializer, ValidatorInterface $validator): JsonResponse
     {
         try {
-            $updatedCity = $cityService->update($id, $request->getContent());
-            $jsonContent = $serializer->serialize($updatedCity, 'json', ['groups' => 'getCity']);
+            $updatedEvent = $eventService->update($id, $request->getContent());
+            $jsonContent = $serializer->serialize($updatedEvent, 'json', ['groups' => 'getEvent']);
+
             return new JsonResponse($jsonContent, 200, [], true);
         } catch (NotFoundHttpException $e) {
             return $this->json(['error' => $e->getMessage()], 404);
@@ -80,18 +69,16 @@ class CityController extends AbstractController
         }
     }
 
-    //function to delete a city
     #[Route('/{id}', name: 'delete', methods: ['DELETE'])]
-    public function delete(int $id, CityService $cityService): JsonResponse
+    public function delete(int $id, EventService $eventService): JsonResponse
     {
         try {
-            $cityService->delete($id);
-            return $this->json(['message' => 'City deleted successfully'], 204);
+            $eventService->delete($id);
+            return $this->json(['message' => 'Event deleted successfully'], 204);
         } catch (NotFoundHttpException $e) {
             return $this->json(['error' => $e->getMessage()], 404);
         } catch (\Exception $e) {
             return $this->json(['error' => $e->getMessage()], 500);
         }
     }
-
 }

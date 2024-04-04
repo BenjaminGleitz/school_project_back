@@ -6,7 +6,7 @@ use App\Repository\CountryRepository;
 use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\Collection;
 use Doctrine\ORM\Mapping as ORM;
-use Symfony\Component\Serializer\Annotation\Ignore;
+use Symfony\Component\Serializer\Annotation\Groups;
 use Symfony\Component\Validator\Constraints as Assert;
 
 #[ORM\Entity(repositoryClass: CountryRepository::class)]
@@ -15,15 +15,17 @@ class Country
     #[ORM\Id]
     #[ORM\GeneratedValue]
     #[ORM\Column]
+    #[Groups(["getCountry", "updateCountry", "getCity", "getEvent"])]
     private ?int $id = null;
 
+    #[Groups(["getCountry", "updateCountry", "getCity", "getEvent"])]
+    #[Assert\NotBlank(message: 'Name is required.')]
+    #[Assert\Length(max: 50, maxMessage: 'Name is too long.')]
     #[ORM\Column(length: 255)]
-    #[Assert\NotBlank(message: "Name cannot be blank")]
-    #[Assert\Length(max: 255, maxMessage: "Name cannot be longer than {{ limit }} characters")]
     private ?string $name = null;
 
     #[ORM\OneToMany(targetEntity: City::class, mappedBy: 'country', cascade: ['remove'])]
-    #[Ignore]
+    #[Groups(["getCountry"])]
     private Collection $cities;
 
     public function __construct()
