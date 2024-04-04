@@ -43,19 +43,11 @@ class EventController extends AbstractController
     }
 
     #[Route('/', name: 'create', methods: ['POST'])]
-    public function create(Request $request, EventService $eventService, SerializerInterface $serializer, ValidatorInterface $validator): JsonResponse
+    public function create(Request $request, EventService $eventService, SerializerInterface $serializer): JsonResponse
     {
         try {
             $createdEvent = $eventService->create($request->getContent());
             $jsonContent = $serializer->serialize($createdEvent, 'json', ['groups' => 'getEvent']);
-            $violations = $validator->validate($createdEvent);
-            if (count($violations) > 0) {
-                $errors = [];
-                foreach ($violations as $violation) {
-                    $errors[$violation->getPropertyPath()] = $violation->getMessage();
-                }
-                return $this->json($errors, 400);
-            }
             return new JsonResponse($jsonContent, 201, [], true);
         } catch (\Exception $e) {
             return $this->json(['error' => $e->getMessage()], 500);

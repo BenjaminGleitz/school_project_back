@@ -9,6 +9,7 @@ use App\Repository\EventRepository;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Component\HttpKernel\Exception\BadRequestHttpException;
 use Symfony\Component\HttpKernel\Exception\NotFoundHttpException;
+use Symfony\Component\Validator\Validator\ValidatorInterface;
 
 class EventService
 {
@@ -16,13 +17,16 @@ class EventService
     private $entityManager;
     private $cityService;
     private $categoryService;
+    private $validator;
 
-    public function __construct(EventRepository $eventRepository, EntityManagerInterface $entityManager, CityService $cityService, CategoryService $categoryService)
+    public function __construct(EventRepository $eventRepository, EntityManagerInterface $entityManager, CityService $cityService, CategoryService $categoryService, ValidatorInterface $validator)
     {
         $this->eventRepository = $eventRepository;
         $this->entityManager = $entityManager;
         $this->cityService = $cityService;
         $this->categoryService = $categoryService;
+        $this->validator = $validator;
+
     }
 
     public function findAll(): array
@@ -45,10 +49,6 @@ class EventService
     {
         $requestData = json_decode($requestData, true);
 
-        if (empty($requestData['title']) || empty($requestData['start_at']) || empty($requestData['city_id']) || empty($requestData['category_id'])) {
-            throw new BadRequestHttpException('Missing required data.');
-        }
-
         $event = new Event();
         $event->setTitle($requestData['title']);
         $event->setDescription($requestData['description'] ?? null);
@@ -59,6 +59,15 @@ class EventService
 
         $categoryId = $this->getCategoryById($requestData['category_id']);
         $event->setCategory($categoryId);
+
+        $violations = $this->validator->validate($event);
+        if (count($violations) > 0) {
+            $errors = [];
+            foreach ($violations as $violation) {
+                $errors[$violation->getPropertyPath()] = $violation->getMessage();
+            }
+            throw new BadRequestHttpException(json_encode($errors));
+        }
 
         $this->entityManager->persist($event);
         $this->entityManager->flush();
@@ -103,6 +112,15 @@ class EventService
         }
         if (!empty($requestData['category_id'])) {
             $event->setCategory($this->entityManager->getReference('App\Entity\Category', $requestData['category_id']));
+        }
+
+        $violations = $this->validator->validate($event);
+        if (count($violations) > 0) {
+            $errors = [];
+            foreach ($violations as $violation) {
+                $errors[$violation->getPropertyPath()] = $violation->getMessage();
+            }
+            throw new BadRequestHttpException(json_encode($errors));
         }
 
         $this->entityManager->flush();
