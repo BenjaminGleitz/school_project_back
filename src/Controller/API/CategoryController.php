@@ -1,18 +1,17 @@
 <?php
 
-namespace App\Controller;
+namespace App\Controller\API;
 
-use App\Entity\Category;
 use App\Service\CategoryService;
+use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpKernel\Exception\NotFoundHttpException;
 use Symfony\Component\Routing\Annotation\Route;
 use Symfony\Component\Serializer\SerializerInterface;
 use Symfony\Component\Validator\Validator\ValidatorInterface;
-use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 
-#[Route('/category', name: 'category_')]
+#[Route('/api/category', name: 'api_category_')]
 class CategoryController extends AbstractController
 {
     #[Route('/', name: 'index', methods: ['GET'])]

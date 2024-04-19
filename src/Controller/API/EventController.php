@@ -1,19 +1,17 @@
 <?php
 
-namespace App\Controller;
+namespace App\Controller\API;
 
-use App\Entity\Event;
 use App\Service\EventService;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpKernel\Exception\NotFoundHttpException;
 use Symfony\Component\Routing\Annotation\Route;
-use Symfony\Component\Serializer\Exception\CircularReferenceException;
 use Symfony\Component\Serializer\SerializerInterface;
 use Symfony\Component\Validator\Validator\ValidatorInterface;
 
-#[Route('/event', name: 'event_')]
+#[Route('/api/event', name: 'api_event_')]
 class EventController extends AbstractController
 {
     #[Route('/', name: 'index', methods: ['GET'])]
