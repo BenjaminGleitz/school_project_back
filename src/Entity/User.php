@@ -114,4 +114,17 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
         // If you store any temporary, sensitive data on the user, clear it here
         // $this->plainPassword = null;
     }
+
+    /**
+     * Check if the user is an admin.
+     *
+     * @return bool
+     */
+    public function isAdmin(): bool
+    {
+        // Ajoutez votre logique pour vérifier si l'utilisateur est un administrateur.
+        // Par exemple, si vous avez une propriété "roles" qui contient le rôle de l'utilisateur,
+        // vous pouvez vérifier si ce tableau de rôles contient le rôle d'administrateur.
+        return \in_array('ROLE_ADMIN', $this->roles, true);
+    }
 }
