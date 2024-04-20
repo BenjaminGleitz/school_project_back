@@ -24,6 +24,7 @@ class RegistrationController extends AbstractController
             $user->setEmail($data['email'] ?? '');
             $password = $data['password'] ?? '';
             $user->setPassword($password ? $passwordHasher->hashPassword($user, $password) : '');
+            $user->setRoles($data['roles'] ?? []);
 
             $violations = $validator->validate($user);
 
