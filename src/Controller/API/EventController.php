@@ -79,4 +79,32 @@ class EventController extends AbstractController
             return $this->json(['error' => $e->getMessage()], 500);
         }
     }
+
+    #[Route('/{id}/participate', name: 'add_participant', methods: ['POST'])]
+    public function addParticipant(int $id, Request $request, EventService $eventService, SerializerInterface $serializer): JsonResponse
+    {
+        try {
+            $event = $eventService->addParticipant($id);
+            $jsonContent = $serializer->serialize($event, 'json', ['groups' => 'getEvent']);
+            return new JsonResponse($jsonContent, 200, [], true);
+        } catch (NotFoundHttpException $e) {
+            return $this->json(['error' => $e->getMessage()], 404);
+        } catch (\Exception $e) {
+            return $this->json(['error' => $e->getMessage()], 500);
+        }
+    }
+
+    #[Route('/{id}/remove-participation', name: 'remove_participant', methods: ['DELETE'])]
+    public function removeParticipant(int $id, Request $request, EventService $eventService, SerializerInterface $serializer): JsonResponse
+    {
+        try {
+            $event = $eventService->removeParticipant($id);
+            $jsonContent = $serializer->serialize($event, 'json', ['groups' => 'getEvent']);
+            return new JsonResponse($jsonContent, 200, [], true);
+        } catch (NotFoundHttpException $e) {
+            return $this->json(['error' => $e->getMessage()], 404);
+        } catch (\Exception $e) {
+            return $this->json(['error' => $e->getMessage()], 500);
+        }
+    }
 }

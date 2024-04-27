@@ -6,6 +6,7 @@ use App\Entity\Category;
 use App\Entity\City;
 use App\Entity\Country;
 use App\Entity\Event;
+use App\Entity\User;
 use App\Repository\EventRepository;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Bundle\SecurityBundle\Security;
@@ -140,6 +141,52 @@ class EventService
 
         $this->entityManager->remove($event);
         $this->entityManager->flush();
+    }
+
+    public function addParticipant(int $eventId): Event
+    {
+        $user = $this->security->getUser();
+        assert($user instanceof User, 'User is not authenticated.');
+
+        $event = $this->find($eventId);
+
+        if (!$event) {
+            throw new NotFoundHttpException('Event not found.');
+        }
+
+        if ($event->getCreator()->getId() === $user->getId()) {
+            throw new BadRequestHttpException('Creator cannot participate in their own event.');
+        }
+
+        if ($event->getParticipant()->contains($user)) {
+            throw new BadRequestHttpException('User is already a participant.');
+        }
+
+        $event->addParticipant($user);
+        $this->entityManager->flush();
+
+        return $event;
+    }
+
+    public function removeParticipant(int $eventId): Event
+    {
+        $user = $this->security->getUser();
+        assert($user instanceof User, 'User is not authenticated.');
+
+        $event = $this->find($eventId);
+
+        if (!$event) {
+            throw new NotFoundHttpException('Event not found.');
+        }
+
+        if (!$event->getParticipant()->contains($user)) {
+            throw new BadRequestHttpException('User is not a participant.');
+        }
+
+        $event->removeParticipant($user);
+        $this->entityManager->flush();
+
+        return $event;
     }
 
     public function getCityById(int $id): City

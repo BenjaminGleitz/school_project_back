@@ -3,6 +3,8 @@
 namespace App\Entity;
 
 use App\Repository\EventRepository;
+use Doctrine\Common\Collections\ArrayCollection;
+use Doctrine\Common\Collections\Collection;
 use Doctrine\DBAL\Types\Types;
 use Doctrine\ORM\Mapping as ORM;
 use Symfony\Component\Serializer\Annotation\Groups;
@@ -56,6 +58,15 @@ class Event
     #[ORM\JoinColumn(nullable: false)]
     #[Groups(["getEvent"])]
     private ?User $creator = null;
+
+    #[ORM\ManyToMany(targetEntity: User::class, inversedBy: 'events')]
+    #[Groups(["getEvent"])]
+    private Collection $participant;
+
+    public function __construct()
+    {
+        $this->participant = new ArrayCollection();
+    }
 
     public function getId(): ?int
     {
@@ -146,6 +157,30 @@ class Event
         }
 
         $this->creator = $creator;
+
+        return $this;
+    }
+
+    /**
+     * @return Collection<int, User>
+     */
+    public function getParticipant(): Collection
+    {
+        return $this->participant;
+    }
+
+    public function addParticipant(User $participant): static
+    {
+        if (!$this->participant->contains($participant)) {
+            $this->participant->add($participant);
+        }
+
+        return $this;
+    }
+
+    public function removeParticipant(User $participant): static
+    {
+        $this->participant->removeElement($participant);
 
         return $this;
     }
