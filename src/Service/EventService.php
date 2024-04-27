@@ -8,6 +8,7 @@ use App\Entity\Country;
 use App\Entity\Event;
 use App\Repository\EventRepository;
 use Doctrine\ORM\EntityManagerInterface;
+use Symfony\Bundle\SecurityBundle\Security;
 use Symfony\Component\HttpKernel\Exception\BadRequestHttpException;
 use Symfony\Component\HttpKernel\Exception\NotFoundHttpException;
 use Symfony\Component\Validator\Validator\ValidatorInterface;
@@ -20,6 +21,7 @@ class EventService
     private $categoryService;
     private $countryService;
     private $validator;
+    private $security;
 
     public function __construct(
         EventRepository $eventRepository,
@@ -27,7 +29,9 @@ class EventService
         CityService $cityService,
         CategoryService $categoryService,
         ValidatorInterface $validator,
-        CountryService $countryService)
+        CountryService $countryService,
+        Security $security
+    )
     {
         $this->eventRepository = $eventRepository;
         $this->entityManager = $entityManager;
@@ -35,7 +39,7 @@ class EventService
         $this->categoryService = $categoryService;
         $this->validator = $validator;
         $this->countryService = $countryService;
-
+        $this->security = $security;
     }
 
     public function findAll(): array
@@ -64,13 +68,13 @@ class EventService
         $event->setStartAt(new \DateTimeImmutable($requestData['start_at']));
 
         $cityId = $this->getCityById($requestData['city_id']);
-        $event->setCity($cityId);
-
         $categoryId = $this->getCategoryById($requestData['category_id']);
-        $event->setCategory($categoryId);
-
         $countryId = $this->getCountryById($requestData['country_id']);
+
+        $event->setCity($cityId);
+        $event->setCategory($categoryId);
         $event->setCountry($countryId);
+        $event->setCreator($this->security->getUser());
 
         if($cityId->getCountry()->getId() != $countryId->getId()){
             throw new BadRequestHttpException('City does not belong to the country.');
@@ -89,33 +93,6 @@ class EventService
         $this->entityManager->flush();
 
         return $event;
-    }
-
-    public function getCityById(int $id): City
-    {
-        if (!$this->cityService->find($id)) {
-            throw new NotFoundHttpException('City not found.');
-        }
-
-        return $this->cityService->find($id);
-    }
-
-    public function getCategoryById(int $id): Category
-    {
-        if (!$this->categoryService->find($id)) {
-            throw new NotFoundHttpException('Category not found.');
-        }
-
-        return $this->categoryService->find($id);
-    }
-
-    public function getCountryById(int $id): Country
-    {
-        if (!$this->countryService->find($id)) {
-            throw new NotFoundHttpException('Country not found.');
-        }
-
-        return $this->countryService->find($id);
     }
 
     public function update(int $id, string $requestData): Event
@@ -163,5 +140,32 @@ class EventService
 
         $this->entityManager->remove($event);
         $this->entityManager->flush();
+    }
+
+    public function getCityById(int $id): City
+    {
+        if (!$this->cityService->find($id)) {
+            throw new NotFoundHttpException('City not found.');
+        }
+
+        return $this->cityService->find($id);
+    }
+
+    public function getCategoryById(int $id): Category
+    {
+        if (!$this->categoryService->find($id)) {
+            throw new NotFoundHttpException('Category not found.');
+        }
+
+        return $this->categoryService->find($id);
+    }
+
+    public function getCountryById(int $id): Country
+    {
+        if (!$this->countryService->find($id)) {
+            throw new NotFoundHttpException('Country not found.');
+        }
+
+        return $this->countryService->find($id);
     }
 }

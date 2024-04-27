@@ -3,6 +3,8 @@
 namespace App\Entity;
 
 use App\Repository\UserRepository;
+use Doctrine\Common\Collections\ArrayCollection;
+use Doctrine\Common\Collections\Collection;
 use Doctrine\ORM\Mapping as ORM;
 use Symfony\Bridge\Doctrine\Validator\Constraints\UniqueEntity;
 use Symfony\Component\Security\Core\User\PasswordAuthenticatedUserInterface;
@@ -18,11 +20,11 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
     #[ORM\Id]
     #[ORM\GeneratedValue]
     #[ORM\Column]
-    #[Groups(["getUser"])]
+    #[Groups(["getUser", "getEvent"])]
     private ?int $id = null;
 
     #[ORM\Column(length: 180)]
-    #[Groups(["getUser"])]
+    #[Groups(["getUser", "getEvent"])]
     #[Assert\NotBlank(message: 'Email is required.')]
     private ?string $email = null;
 
@@ -39,6 +41,14 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
     #[ORM\Column]
     #[Assert\NotBlank(message: 'Password is required.')]
     private ?string $password = null;
+
+    #[ORM\OneToMany(targetEntity: Event::class, mappedBy: 'creator', orphanRemoval: true)]
+    private Collection $eventsCreated;
+
+    public function __construct()
+    {
+        $this->eventsCreated = new ArrayCollection();
+    }
 
     public function getId(): ?int
     {
@@ -126,5 +136,35 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
         // Par exemple, si vous avez une propriété "roles" qui contient le rôle de l'utilisateur,
         // vous pouvez vérifier si ce tableau de rôles contient le rôle d'administrateur.
         return \in_array('ROLE_ADMIN', $this->roles, true);
+    }
+
+    /**
+     * @return Collection<int, Event>
+     */
+    public function getEventsCreated(): Collection
+    {
+        return $this->eventsCreated;
+    }
+
+    public function addEventsCreated(Event $eventsCreated): static
+    {
+        if (!$this->eventsCreated->contains($eventsCreated)) {
+            $this->eventsCreated->add($eventsCreated);
+            $eventsCreated->setCreator($this);
+        }
+
+        return $this;
+    }
+
+    public function removeEventsCreated(Event $eventsCreated): static
+    {
+        if ($this->eventsCreated->removeElement($eventsCreated)) {
+            // set the owning side to null (unless already changed)
+            if ($eventsCreated->getCreator() === $this) {
+                $eventsCreated->setCreator(null);
+            }
+        }
+
+        return $this;
     }
 }

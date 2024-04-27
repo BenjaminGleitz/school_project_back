@@ -52,6 +52,11 @@ class Event
     #[ORM\JoinColumn(nullable: true)]
     private ?Country $country = null;
 
+    #[ORM\ManyToOne(inversedBy: 'eventsCreated')]
+    #[ORM\JoinColumn(nullable: false)]
+    #[Groups(["getEvent"])]
+    private ?User $creator = null;
+
     public function getId(): ?int
     {
         return $this->id;
@@ -125,6 +130,22 @@ class Event
     public function setCountry(?Country $country): static
     {
         $this->country = $country;
+
+        return $this;
+    }
+
+    public function getCreator(): ?User
+    {
+        return $this->creator;
+    }
+
+    public function setCreator(?User $creator): static
+    {
+        if ($this->creator !== null) {
+            return $this;
+        }
+
+        $this->creator = $creator;
 
         return $this;
     }
