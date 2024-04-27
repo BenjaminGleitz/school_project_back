@@ -31,6 +31,9 @@ class Country
     #[ORM\OneToMany(targetEntity: Event::class, mappedBy: 'country', orphanRemoval: true)]
     private Collection $events;
 
+    #[ORM\Column(length: 10)]
+    private ?string $countryCode = null;
+
     public function __construct()
     {
         $this->cities = new ArrayCollection();
@@ -110,6 +113,18 @@ class Country
                 $event->setCountry(null);
             }
         }
+
+        return $this;
+    }
+
+    public function getCountryCode(): ?string
+    {
+        return $this->countryCode;
+    }
+
+    public function setCountryCode(string $countryCode): static
+    {
+        $this->countryCode = $countryCode;
 
         return $this;
     }
