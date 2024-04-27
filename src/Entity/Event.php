@@ -3,6 +3,8 @@
 namespace App\Entity;
 
 use App\Repository\EventRepository;
+use Doctrine\Common\Collections\ArrayCollection;
+use Doctrine\Common\Collections\Collection;
 use Doctrine\DBAL\Types\Types;
 use Doctrine\ORM\Mapping as ORM;
 use Symfony\Component\Serializer\Annotation\Groups;
@@ -51,6 +53,24 @@ class Event
     #[Groups(["getCategory", "getEvent"])]
     #[ORM\JoinColumn(nullable: true)]
     private ?Country $country = null;
+
+    #[ORM\ManyToOne(inversedBy: 'eventsCreated')]
+    #[ORM\JoinColumn(nullable: false)]
+    #[Groups(["getEvent"])]
+    private ?User $creator = null;
+
+    #[ORM\ManyToMany(targetEntity: User::class, inversedBy: 'events')]
+    #[Groups(["getEvent"])]
+    private Collection $participant;
+
+    #[ORM\Column(nullable: true)]
+    #[Groups(["getEvent"])]
+    private ?int $participantLimit = null;
+
+    public function __construct()
+    {
+        $this->participant = new ArrayCollection();
+    }
 
     public function getId(): ?int
     {
@@ -125,6 +145,58 @@ class Event
     public function setCountry(?Country $country): static
     {
         $this->country = $country;
+
+        return $this;
+    }
+
+    public function getCreator(): ?User
+    {
+        return $this->creator;
+    }
+
+    public function setCreator(?User $creator): static
+    {
+        if ($this->creator !== null) {
+            return $this;
+        }
+
+        $this->creator = $creator;
+
+        return $this;
+    }
+
+    /**
+     * @return Collection<int, User>
+     */
+    public function getParticipant(): Collection
+    {
+        return $this->participant;
+    }
+
+    public function addParticipant(User $participant): static
+    {
+        if (!$this->participant->contains($participant)) {
+            $this->participant->add($participant);
+        }
+
+        return $this;
+    }
+
+    public function removeParticipant(User $participant): static
+    {
+        $this->participant->removeElement($participant);
+
+        return $this;
+    }
+
+    public function getParticipantLimit(): ?int
+    {
+        return $this->participantLimit;
+    }
+
+    public function setParticipantLimit(?int $participantLimit): static
+    {
+        $this->participantLimit = $participantLimit;
 
         return $this;
     }

@@ -6,8 +6,10 @@ use App\Entity\Category;
 use App\Entity\City;
 use App\Entity\Country;
 use App\Entity\Event;
+use App\Entity\User;
 use App\Repository\EventRepository;
 use Doctrine\ORM\EntityManagerInterface;
+use Symfony\Bundle\SecurityBundle\Security;
 use Symfony\Component\HttpKernel\Exception\BadRequestHttpException;
 use Symfony\Component\HttpKernel\Exception\NotFoundHttpException;
 use Symfony\Component\Validator\Validator\ValidatorInterface;
@@ -20,14 +22,17 @@ class EventService
     private $categoryService;
     private $countryService;
     private $validator;
+    private $security;
 
     public function __construct(
-        EventRepository $eventRepository,
+        EventRepository        $eventRepository,
         EntityManagerInterface $entityManager,
-        CityService $cityService,
-        CategoryService $categoryService,
-        ValidatorInterface $validator,
-        CountryService $countryService)
+        CityService            $cityService,
+        CategoryService        $categoryService,
+        ValidatorInterface     $validator,
+        CountryService         $countryService,
+        Security               $security
+    )
     {
         $this->eventRepository = $eventRepository;
         $this->entityManager = $entityManager;
@@ -35,7 +40,7 @@ class EventService
         $this->categoryService = $categoryService;
         $this->validator = $validator;
         $this->countryService = $countryService;
-
+        $this->security = $security;
     }
 
     public function findAll(): array
@@ -64,15 +69,19 @@ class EventService
         $event->setStartAt(new \DateTimeImmutable($requestData['start_at']));
 
         $cityId = $this->getCityById($requestData['city_id']);
-        $event->setCity($cityId);
-
         $categoryId = $this->getCategoryById($requestData['category_id']);
-        $event->setCategory($categoryId);
-
         $countryId = $this->getCountryById($requestData['country_id']);
-        $event->setCountry($countryId);
 
-        if($cityId->getCountry()->getId() != $countryId->getId()){
+        $event->setCity($cityId);
+        $event->setCategory($categoryId);
+        $event->setCountry($countryId);
+        $event->setCreator($this->security->getUser());
+
+        if (isset($requestData['participantLimit'])) {
+            $event->setParticipantLimit($requestData['participantLimit']);
+        }
+
+        if ($cityId->getCountry()->getId() != $countryId->getId()) {
             throw new BadRequestHttpException('City does not belong to the country.');
         }
 
@@ -86,6 +95,114 @@ class EventService
         }
 
         $this->entityManager->persist($event);
+        $this->entityManager->flush();
+
+        return $event;
+    }
+
+    public function update(int $id, string $requestData): Event
+    {
+        $requestData = json_decode($requestData, true);
+        $event = $this->find($id);
+
+        if (!empty($requestData['title'])) {
+            $event->setTitle($requestData['title']);
+        }
+        if (!empty($requestData['description'])) {
+            $event->setDescription($requestData['description']);
+        }
+        if (!empty($requestData['start_at'])) {
+            $event->setStartAt(new \DateTimeImmutable($requestData['start_at']));
+        }
+        if (!empty($requestData['city_id'])) {
+            $event->setCity($this->entityManager->getReference('App\Entity\City', $requestData['city_id']));
+        }
+        if (!empty($requestData['category_id'])) {
+            $event->setCategory($this->entityManager->getReference('App\Entity\Category', $requestData['category_id']));
+        }
+        if (!empty($requestData['participantLimit']) && $this->security->getUser() === $event->getCreator()) {
+            $event->setParticipantLimit($requestData['participantLimit']);
+        }
+        if (!empty($requestData['country_id'])) {
+            if ($event->getCity()->getCountry()->getId() != $requestData['country_id']) {
+                throw new BadRequestHttpException('City does not belong to the country.');
+            }
+            $event->setCountry($this->entityManager->getReference('App\Entity\Country', $requestData['country_id']));
+        }
+
+        $violations = $this->validator->validate($event);
+        if (count($violations) > 0) {
+            $errors = [];
+            foreach ($violations as $violation) {
+                $errors[$violation->getPropertyPath()] = $violation->getMessage();
+            }
+            throw new BadRequestHttpException(json_encode($errors));
+        }
+
+        $this->entityManager->flush();
+
+        return $event;
+    }
+
+    public function delete(int $id): void
+    {
+        $event = $this->find($id);
+
+        if (!$event) {
+            throw new NotFoundHttpException('Event not found.');
+        }
+
+        $this->entityManager->remove($event);
+        $this->entityManager->flush();
+    }
+
+    public function addParticipant(int $eventId): Event
+    {
+        $user = $this->security->getUser();
+        assert($user instanceof User, 'User is not authenticated.');
+
+        $event = $this->find($eventId);
+
+        if (!$event) {
+            throw new NotFoundHttpException('Event not found.');
+        }
+
+        if ($event->getCreator()->getId() === $user->getId()) {
+            throw new BadRequestHttpException('Creator cannot participate in their own event.');
+        }
+
+        if ($event->getParticipant()->contains($user)) {
+            throw new BadRequestHttpException('User is already a participant.');
+        }
+
+        if ($event->getParticipantLimit() == !null) {
+            if ($event->getParticipant()->count() >= $event->getParticipantLimit()) {
+                throw new BadRequestHttpException('Event is full.');
+            }
+        }
+
+        $event->addParticipant($user);
+        $this->entityManager->flush();
+
+        return $event;
+    }
+
+    public function removeParticipant(int $eventId): Event
+    {
+        $user = $this->security->getUser();
+        assert($user instanceof User, 'User is not authenticated.');
+
+        $event = $this->find($eventId);
+
+        if (!$event) {
+            throw new NotFoundHttpException('Event not found.');
+        }
+
+        if (!$event->getParticipant()->contains($user)) {
+            throw new BadRequestHttpException('User is not a participant.');
+        }
+
+        $event->removeParticipant($user);
         $this->entityManager->flush();
 
         return $event;
@@ -116,52 +233,5 @@ class EventService
         }
 
         return $this->countryService->find($id);
-    }
-
-    public function update(int $id, string $requestData): Event
-    {
-        $requestData = json_decode($requestData, true);
-        $event = $this->find($id);
-
-        if (!empty($requestData['title'])) {
-            $event->setTitle($requestData['title']);
-        }
-        if (!empty($requestData['description'])) {
-            $event->setDescription($requestData['description']);
-        }
-        if (!empty($requestData['start_at'])) {
-            $event->setStartAt(new \DateTimeImmutable($requestData['start_at']));
-        }
-        if (!empty($requestData['city_id'])) {
-            $event->setCity($this->entityManager->getReference('App\Entity\City', $requestData['city_id']));
-        }
-        if (!empty($requestData['category_id'])) {
-            $event->setCategory($this->entityManager->getReference('App\Entity\Category', $requestData['category_id']));
-        }
-
-        $violations = $this->validator->validate($event);
-        if (count($violations) > 0) {
-            $errors = [];
-            foreach ($violations as $violation) {
-                $errors[$violation->getPropertyPath()] = $violation->getMessage();
-            }
-            throw new BadRequestHttpException(json_encode($errors));
-        }
-
-        $this->entityManager->flush();
-
-        return $event;
-    }
-
-    public function delete(int $id): void
-    {
-        $event = $this->find($id);
-
-        if (!$event) {
-            throw new NotFoundHttpException('Event not found.');
-        }
-
-        $this->entityManager->remove($event);
-        $this->entityManager->flush();
     }
 }
