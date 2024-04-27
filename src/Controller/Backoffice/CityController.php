@@ -12,7 +12,7 @@ use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Attribute\Route;
 use Symfony\Component\HttpKernel\Exception\NotFoundHttpException;
 
-#[Route('/city', name: 'app_city_')]
+#[Route('/backoffice/city', name: 'app_city_')]
 class CityController extends AbstractController
 {
     #[Route('/', name: 'index', methods: ['GET'])]

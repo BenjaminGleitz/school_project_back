@@ -4,6 +4,7 @@ namespace App\Service;
 
 use App\Entity\Category;
 use App\Entity\City;
+use App\Entity\Country;
 use App\Entity\Event;
 use App\Repository\EventRepository;
 use Doctrine\ORM\EntityManagerInterface;
@@ -17,15 +18,23 @@ class EventService
     private $entityManager;
     private $cityService;
     private $categoryService;
+    private $countryService;
     private $validator;
 
-    public function __construct(EventRepository $eventRepository, EntityManagerInterface $entityManager, CityService $cityService, CategoryService $categoryService, ValidatorInterface $validator)
+    public function __construct(
+        EventRepository $eventRepository,
+        EntityManagerInterface $entityManager,
+        CityService $cityService,
+        CategoryService $categoryService,
+        ValidatorInterface $validator,
+        CountryService $countryService)
     {
         $this->eventRepository = $eventRepository;
         $this->entityManager = $entityManager;
         $this->cityService = $cityService;
         $this->categoryService = $categoryService;
         $this->validator = $validator;
+        $this->countryService = $countryService;
 
     }
 
@@ -60,6 +69,13 @@ class EventService
         $categoryId = $this->getCategoryById($requestData['category_id']);
         $event->setCategory($categoryId);
 
+        $countryId = $this->getCountryById($requestData['country_id']);
+        $event->setCountry($countryId);
+
+        if($cityId->getCountry()->getId() != $countryId->getId()){
+            throw new BadRequestHttpException('City does not belong to the country.');
+        }
+
         $violations = $this->validator->validate($event);
         if (count($violations) > 0) {
             $errors = [];
@@ -91,6 +107,15 @@ class EventService
         }
 
         return $this->categoryService->find($id);
+    }
+
+    public function getCountryById(int $id): Country
+    {
+        if (!$this->countryService->find($id)) {
+            throw new NotFoundHttpException('Country not found.');
+        }
+
+        return $this->countryService->find($id);
     }
 
     public function update(int $id, string $requestData): Event

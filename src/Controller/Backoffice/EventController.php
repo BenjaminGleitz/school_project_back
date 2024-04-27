@@ -12,7 +12,7 @@ use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Attribute\Route;
 use Symfony\Component\HttpKernel\Exception\NotFoundHttpException;
 
-#[Route('/event', name: 'app_event_')]
+#[Route('/backoffice/event', name: 'app_event_')]
 class EventController extends AbstractController
 {
     #[Route('/', name: 'index', methods: ['GET'])]

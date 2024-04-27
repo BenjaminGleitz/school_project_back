@@ -14,7 +14,7 @@ use Symfony\Component\HttpKernel\Exception\NotFoundHttpException;
 use Symfony\Component\Routing\Attribute\Route;
 use Symfony\Component\Validator\Validator\ValidatorInterface;
 
-#[Route('/category', name: 'app_category_')]
+#[Route('/backoffice/category', name: 'app_category_')]
 class CategoryController extends AbstractController
 {
     private $categoryService;

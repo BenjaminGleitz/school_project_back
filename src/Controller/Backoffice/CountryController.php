@@ -12,7 +12,7 @@ use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Attribute\Route;
 use Symfony\Component\HttpKernel\Exception\NotFoundHttpException;
 
-#[Route('/country', name: 'app_country_')]
+#[Route('/backoffice/country', name: 'app_country_')]
 class CountryController extends AbstractController
 {
     #[Route('/', name: 'index', methods: ['GET'])]
