@@ -1,19 +1,17 @@
 <?php
 
-namespace App\Controller;
+namespace App\Controller\API;
 
-use App\Entity\City;
 use App\Service\CityService;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpKernel\Exception\NotFoundHttpException;
 use Symfony\Component\Routing\Annotation\Route;
-use Symfony\Component\Serializer\Exception\CircularReferenceException;
 use Symfony\Component\Serializer\SerializerInterface;
 use Symfony\Component\Validator\Validator\ValidatorInterface;
 
-#[Route('/city', name: 'city_')]
+#[Route('/api/city', name: 'api_city_')]
 class CityController extends AbstractController
 {
     //function to get all cities

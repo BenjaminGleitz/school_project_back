@@ -1,20 +1,28 @@
 <?php
 
-namespace App\Controller;
+namespace App\Controller\API;
 
-use App\Entity\Category;
 use App\Service\CategoryService;
+use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
+use Symfony\Bundle\SecurityBundle\Security;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpKernel\Exception\NotFoundHttpException;
 use Symfony\Component\Routing\Annotation\Route;
+use Symfony\Component\Security\Http\Attribute\IsGranted;
 use Symfony\Component\Serializer\SerializerInterface;
 use Symfony\Component\Validator\Validator\ValidatorInterface;
-use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 
-#[Route('/category', name: 'category_')]
+#[Route('/api/category', name: 'api_category_')]
 class CategoryController extends AbstractController
 {
+    private $security;
+
+    public function __construct(Security $security)
+    {
+        $this->security = $security;
+    }
+
     #[Route('/', name: 'index', methods: ['GET'])]
     public function index(CategoryService $categoryService, SerializerInterface $serializer): JsonResponse
     {
@@ -32,7 +40,7 @@ class CategoryController extends AbstractController
     {
         try {
             $category = $categoryService->find($id);
-            $jsonContent = $serializer->serialize($category, 'json');
+            $jsonContent = $serializer->serialize($category, 'json', ['groups' => 'getCategory']);
             return new JsonResponse($jsonContent, 200, [], true);
         } catch (NotFoundHttpException $e) {
             return $this->json(['error' => $e->getMessage()], 404);

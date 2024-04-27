@@ -12,6 +12,9 @@
         {% endblock %}
     </head>
     <body>
-        {% block body %}{% endblock %}
+        {% set currentRoute = app.request.get('_route') %}
+        {% include "partials/_nav.html.twig" %}
+        {% block body %}
+        {% endblock %}
     </body>
 </html>

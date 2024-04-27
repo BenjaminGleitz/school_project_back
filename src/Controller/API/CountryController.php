@@ -1,19 +1,17 @@
 <?php
 
-namespace App\Controller;
+namespace App\Controller\API;
 
-use App\Entity\Country;
 use App\Service\CountryService;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpKernel\Exception\NotFoundHttpException;
 use Symfony\Component\Routing\Annotation\Route;
-use Symfony\Component\Serializer\Exception\CircularReferenceException;
 use Symfony\Component\Serializer\SerializerInterface;
 use Symfony\Component\Validator\Validator\ValidatorInterface;
 
-#[Route('/country', name: 'country_')]
+#[Route('/api/country', name: 'api_country_')]
 class CountryController extends AbstractController
 {
     //function to get all countries

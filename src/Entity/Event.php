@@ -46,6 +46,12 @@ class Event
     #[Assert\GreaterThan('today', message: 'Start date must be in the future.')]
     private ?\DateTimeImmutable $start_at = null;
 
+    #[ORM\ManyToOne(inversedBy: 'events')]
+    #[Assert\NotBlank(message: 'Country is required.')]
+    #[Groups(["getCategory", "getEvent"])]
+    #[ORM\JoinColumn(nullable: true)]
+    private ?Country $country = null;
+
     public function getId(): ?int
     {
         return $this->id;
@@ -107,6 +113,18 @@ class Event
     public function setStartAt(\DateTimeImmutable $start_at): static
     {
         $this->start_at = $start_at;
+
+        return $this;
+    }
+
+    public function getCountry(): ?Country
+    {
+        return $this->country;
+    }
+
+    public function setCountry(?Country $country): static
+    {
+        $this->country = $country;
 
         return $this;
     }

@@ -1,0 +1,33 @@
+{% block stylesheets %}
+    <link rel="stylesheet" href="{{ asset('styles/partials/_nav.css') }}">
+{% endblock %}
+
+<nav class="navigation">
+    <div class="nav_logo-container">
+            <p>Logo</p>
+    </div>
+    <div class="nav_items-container">
+        <ul class="nav_items-list">
+            <li><a href="{{ path('app_home') }}">Home</a></li>
+            <li><a href="index.php">About</a></li>
+            <li><a href="index.php">Services</a></li>
+            <li><a href="index.php">Contact</a></li>
+        </ul>
+    </div>
+    <div class="user_info-container">
+        {% if app.user %}
+            <div class="connected">
+                <div class="connected-user">
+                    <p>{{ app.user.email }}</p>
+                </div>
+                <button class="nav_logout-button">
+                    <a href="{{ path('app_logout') }}">LOGOUT</a>
+                </button>
+            </div>
+        {% else %}
+            <button class="nav_login-button">
+                <a class="text-decoration-none" href="{{ path('app_login') }}">LOGIN</a>
+            </button>
+        {% endif %}
+    </div>
+</nav>
