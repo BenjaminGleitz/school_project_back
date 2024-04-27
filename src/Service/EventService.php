@@ -25,13 +25,13 @@ class EventService
     private $security;
 
     public function __construct(
-        EventRepository $eventRepository,
+        EventRepository        $eventRepository,
         EntityManagerInterface $entityManager,
-        CityService $cityService,
-        CategoryService $categoryService,
-        ValidatorInterface $validator,
-        CountryService $countryService,
-        Security $security
+        CityService            $cityService,
+        CategoryService        $categoryService,
+        ValidatorInterface     $validator,
+        CountryService         $countryService,
+        Security               $security
     )
     {
         $this->eventRepository = $eventRepository;
@@ -77,7 +77,11 @@ class EventService
         $event->setCountry($countryId);
         $event->setCreator($this->security->getUser());
 
-        if($cityId->getCountry()->getId() != $countryId->getId()){
+        if (isset($requestData['participantLimit'])) {
+            $event->setParticipantLimit($requestData['participantLimit']);
+        }
+
+        if ($cityId->getCountry()->getId() != $countryId->getId()) {
             throw new BadRequestHttpException('City does not belong to the country.');
         }
 
@@ -115,6 +119,10 @@ class EventService
         }
         if (!empty($requestData['category_id'])) {
             $event->setCategory($this->entityManager->getReference('App\Entity\Category', $requestData['category_id']));
+        }
+        if (!empty($requestData['participantLimit'])) {
+            $event->setParticipantLimit($requestData['participantLimit']);
+            dd($requestData['participantLimit']);
         }
 
         $violations = $this->validator->validate($event);
@@ -160,6 +168,12 @@ class EventService
 
         if ($event->getParticipant()->contains($user)) {
             throw new BadRequestHttpException('User is already a participant.');
+        }
+
+        if ($event->getParticipantLimit() == !null) {
+            if ($event->getParticipant()->count() >= $event->getParticipantLimit()) {
+                throw new BadRequestHttpException('Event is full.');
+            }
         }
 
         $event->addParticipant($user);

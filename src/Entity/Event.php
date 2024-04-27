@@ -63,6 +63,10 @@ class Event
     #[Groups(["getEvent"])]
     private Collection $participant;
 
+    #[ORM\Column(nullable: true)]
+    #[Groups(["getEvent"])]
+    private ?int $participantLimit = null;
+
     public function __construct()
     {
         $this->participant = new ArrayCollection();
@@ -181,6 +185,18 @@ class Event
     public function removeParticipant(User $participant): static
     {
         $this->participant->removeElement($participant);
+
+        return $this;
+    }
+
+    public function getParticipantLimit(): ?int
+    {
+        return $this->participantLimit;
+    }
+
+    public function setParticipantLimit(?int $participantLimit): static
+    {
+        $this->participantLimit = $participantLimit;
 
         return $this;
     }
