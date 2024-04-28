@@ -106,6 +106,7 @@ class AppFixtures extends Fixture {
             $event = new Event();
             $event->setTitle('Event ' . $i);
             $event->setStartAt($startDate);
+            $event->setDescription('Description de l\'événement Description de l\'événement Description de l\'événement Description de l\'événement ' . $i);
             $event->setCity($cityObjectList[array_rand($cityObjectList)]);
             $event->setCountry($event->getCity()->getCountry());
             $event->setCategory($categoriesObjectsList[array_rand($categoriesObjectsList)]);
