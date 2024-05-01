@@ -2,6 +2,7 @@
 
 namespace App\Controller\API;
 
+use App\Entity\City;
 use App\Entity\User;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Component\HttpFoundation\Request;
@@ -25,6 +26,18 @@ class RegistrationController extends AbstractController
             $password = $data['password'] ?? '';
             $user->setPassword($password ? $passwordHasher->hashPassword($user, $password) : '');
             $user->setRoles($data['roles'] ?? []);
+            $user->setFirstname($data['firstname'] ?? '');
+            $user->setLastname($data['lastname'] ?? '');
+            $user->setCreatedAt(new \DateTimeImmutable());
+
+            $favoriteCity = $data['favoriteCity'] ?? null;
+            if ($favoriteCity) {
+                $city = $entityManager->getRepository(City::class)->find($favoriteCity);
+                if (!$city) {
+                    return new JsonResponse(['error' => 'City not found'], 404);
+                }
+                $user->setFavoriteCity($city);
+            }
 
             $violations = $validator->validate($user);
 

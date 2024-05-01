@@ -15,10 +15,10 @@ class Country
     #[ORM\Id]
     #[ORM\GeneratedValue]
     #[ORM\Column]
-    #[Groups(["getCountry", "updateCountry", "getCity", "getEvent"])]
+    #[Groups(["getCountry", "updateCountry", "getCity", "getEvent", "getUser"])]
     private ?int $id = null;
 
-    #[Groups(["getCountry", "updateCountry", "getCity", "getEvent"])]
+    #[Groups(["getCountry", "updateCountry", "getCity", "getEvent", "getUser"])]
     #[Assert\NotBlank(message: 'Name is required.')]
     #[Assert\Length(max: 50, maxMessage: 'Name is too long.')]
     #[ORM\Column(length: 255)]

@@ -32,7 +32,7 @@ class Event
 
     #[ORM\ManyToOne(inversedBy: 'events')]
     #[ORM\JoinColumn(nullable: false)]
-    #[Groups(["getCategory", "getEvent"])]
+    #[Groups(["getCategory", "getEvent", "getUser"])]
     #[Assert\NotBlank(message: 'City is required.')]
     private ?City $city = null;
 

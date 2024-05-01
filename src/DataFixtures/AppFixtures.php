@@ -90,6 +90,10 @@ class AppFixtures extends Fixture {
             $hashedPassword = password_hash($password, PASSWORD_DEFAULT);
             $user->setPassword($hashedPassword);
             $user->setRoles(['ROLE_ADMIN']);
+            $user->setFirstname('Firstname' . $i);
+            $user->setLastname('Lastname' . $i);
+            $user->setCreatedAt(new \DateTimeImmutable());
+            $user->setFavoriteCity($cityObjectList[array_rand($cityObjectList)]);
             $usersObjectList[] = $user;
             $manager->persist($user);
         }
