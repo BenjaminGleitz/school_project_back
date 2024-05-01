@@ -90,6 +90,10 @@ class AppFixtures extends Fixture {
             $hashedPassword = password_hash($password, PASSWORD_DEFAULT);
             $user->setPassword($hashedPassword);
             $user->setRoles(['ROLE_ADMIN']);
+            $user->setFirstname('Firstname' . $i);
+            $user->setLastname('Lastname' . $i);
+            $user->setCreatedAt(new \DateTimeImmutable());
+            $user->setFavoriteCity($cityObjectList[array_rand($cityObjectList)]);
             $usersObjectList[] = $user;
             $manager->persist($user);
         }
@@ -112,6 +116,7 @@ class AppFixtures extends Fixture {
             $event->setCategory($categoriesObjectsList[array_rand($categoriesObjectsList)]);
             $creator = $usersObjectList[array_rand($usersObjectList)];
             $event->setCreator($creator);
+            $event->setParticipantLimit(mt_rand(5, 20));
             $manager->persist($event);
 
             // Ajouter entre 1 et 5 participants (autres que le créateur)

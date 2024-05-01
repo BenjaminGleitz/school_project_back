@@ -31,7 +31,7 @@ class EventController extends AbstractController
     {
         try {
             $event = $eventService->find($id);
-            $jsonContent = $serializer->serialize($event, 'json', ['groups' => 'getEvent']);
+            $jsonContent = $serializer->serialize($event, 'json', ['groups' => 'getOneEvent']);
             return new JsonResponse($jsonContent, 200, [], true);
         } catch (NotFoundHttpException $e) {
             return $this->json(['error' => $e->getMessage()], 404);
@@ -57,7 +57,7 @@ class EventController extends AbstractController
     {
         try {
             $updatedEvent = $eventService->update($id, $request->getContent());
-            $jsonContent = $serializer->serialize($updatedEvent, 'json', ['groups' => 'getEvent']);
+            $jsonContent = $serializer->serialize($updatedEvent, 'json', ['groups' => 'getOneEvent']);
 
             return new JsonResponse($jsonContent, 200, [], true);
         } catch (NotFoundHttpException $e) {

@@ -31,7 +31,7 @@ class UserController extends AbstractController
     {
         try {
             $user = $userService->find($id);
-            $jsonContent = $serializer->serialize($user, 'json');
+            $jsonContent = $serializer->serialize($user, 'json', ['groups' => 'getUser']);
             return new JsonResponse($jsonContent, 200, [], true);
         } catch (NotFoundHttpException $e) {
             return $this->json(['error' => $e->getMessage()], 404);
