@@ -15,18 +15,18 @@ class City
     #[ORM\Id]
     #[ORM\GeneratedValue]
     #[ORM\Column]
-    #[Groups(["getCity", "getCountry", "getEvent", "getCategory", "getUser"])]
+    #[Groups(["getCity", "getCountry", "getEvent", "getOneEvent", "getCategory", "getUser"])]
     private ?int $id = null;
 
     #[ORM\Column(length: 255)]
-    #[Groups(["getCity", "getCountry", "getEvent", "getCategory", "getUser"])]
+    #[Groups(["getCity", "getCountry", "getEvent", "getOneEvent", "getCategory", "getUser"])]
     #[Assert\NotBlank(message: 'Name is required.')]
     #[Assert\Length(max: 50, maxMessage: 'Name is too long.')]
     private ?string $name = null;
 
     #[ORM\ManyToOne(targetEntity: Country::class, inversedBy: 'cities')]
     #[ORM\JoinColumn(nullable: false)]
-    #[Groups(["getCity", "getEvent", "getUser"])]
+    #[Groups(["getCity", "getEvent", "getUser", "getOneEvent"])]
     private ?Country $country = null;
 
     #[ORM\OneToMany(targetEntity: Event::class, mappedBy: 'city', orphanRemoval: true)]

@@ -16,55 +16,55 @@ class Event
     #[ORM\Id]
     #[ORM\GeneratedValue]
     #[ORM\Column]
-    #[Groups(["getCategory", "getEvent"])]
+    #[Groups(["getCategory", "getEvent", "getOneEvent", "getUser"])]
     private ?int $id = null;
 
     #[ORM\Column(length: 255)]
-    #[Groups(["getCategory", "getEvent"])]
+    #[Groups(["getCategory", "getEvent", "getOneEvent", "getUser"])]
     #[Assert\NotBlank(message: 'Title is required.')]
     #[Assert\Length(max: 50, maxMessage: 'Title is too long.')]
     private ?string $title = null;
 
     #[ORM\Column(type: Types::TEXT, nullable: true)]
-    #[Groups(["getCategory", "getEvent"])]
+    #[Groups(["getCategory", "getOneEvent"])]
     #[Assert\NotBlank(message: 'Description is required.')]
     private ?string $description = null;
 
     #[ORM\ManyToOne(inversedBy: 'events')]
     #[ORM\JoinColumn(nullable: false)]
-    #[Groups(["getCategory", "getEvent", "getUser"])]
+    #[Groups(["getCategory", "getEvent", "getUser", "getOneEvent"])]
     #[Assert\NotBlank(message: 'City is required.')]
     private ?City $city = null;
 
     #[ORM\ManyToOne(inversedBy: 'events')]
     #[ORM\JoinColumn(nullable: false)]
-    #[Groups(["getEvent"])]
+    #[Groups(["getEvent", "getOneEvent"])]
     #[Assert\NotBlank(message: 'Category is required.')]
     private ?Category $category = null;
 
     #[ORM\Column]
-    #[Groups(["getCategory", "getEvent"])]
+    #[Groups(["getCategory", "getEvent", "getOneEvent"])]
     #[Assert\NotBlank(message: 'Start date is required.')]
     #[Assert\GreaterThan('today', message: 'Start date must be in the future.')]
     private ?\DateTimeImmutable $start_at = null;
 
     #[ORM\ManyToOne(inversedBy: 'events')]
     #[Assert\NotBlank(message: 'Country is required.')]
-    #[Groups(["getCategory", "getEvent"])]
+    #[Groups(["getCategory", "getOneEvent"])]
     #[ORM\JoinColumn(nullable: true)]
     private ?Country $country = null;
 
     #[ORM\ManyToOne(inversedBy: 'eventsCreated')]
     #[ORM\JoinColumn(nullable: false)]
-    #[Groups(["getEvent"])]
+    #[Groups(["getOneEvent", "getOneEvent"])]
     private ?User $creator = null;
 
     #[ORM\ManyToMany(targetEntity: User::class, inversedBy: 'events')]
-    #[Groups(["getEvent"])]
+    #[Groups(["getOneEvent", "getOneEvent"])]
     private Collection $participant;
 
     #[ORM\Column(nullable: true)]
-    #[Groups(["getEvent"])]
+    #[Groups(["getOneEvent"])]
     private ?int $participantLimit = null;
 
     public function __construct()

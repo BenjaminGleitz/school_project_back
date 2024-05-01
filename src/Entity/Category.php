@@ -15,18 +15,18 @@ class Category
     #[ORM\Id]
     #[ORM\GeneratedValue]
     #[ORM\Column]
-    #[Groups(["getCategory", "getEvent"])]
+    #[Groups(["getCategory", "getEvent", "getOneEvent"])]
     private ?int $id = null;
 
     #[ORM\Column(length: 255)]
     #[Assert\NotBlank(message: 'Title is required.')]
     #[Assert\Length(max: 50, maxMessage: 'Title is too long.')]
-    #[Groups(["getCategory", "getEvent"])]
+    #[Groups(["getCategory", "getEvent", "getOneEvent"])]
     private ?string $title = null;
 
     #[ORM\Column(length: 255, nullable: true)]
     #[Assert\NotBlank(message: 'Image is required.')]
-    #[Groups(["getCategory", "getEvent"])]
+    #[Groups(["getCategory", "getEvent", "getOneEvent"])]
     private ?string $image = null;
 
     #[ORM\OneToMany(targetEntity: Event::class, mappedBy: 'category', orphanRemoval: true)]

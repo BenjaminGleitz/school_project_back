@@ -116,6 +116,7 @@ class AppFixtures extends Fixture {
             $event->setCategory($categoriesObjectsList[array_rand($categoriesObjectsList)]);
             $creator = $usersObjectList[array_rand($usersObjectList)];
             $event->setCreator($creator);
+            $event->setParticipantLimit(mt_rand(5, 20));
             $manager->persist($event);
 
             // Ajouter entre 1 et 5 participants (autres que le créateur)
