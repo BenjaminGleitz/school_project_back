@@ -12,6 +12,7 @@ use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Bundle\SecurityBundle\Security;
 use Symfony\Component\HttpKernel\Exception\BadRequestHttpException;
 use Symfony\Component\HttpKernel\Exception\NotFoundHttpException;
+use Symfony\Component\Security\Core\User\UserInterface;
 use Symfony\Component\Validator\Validator\ValidatorInterface;
 
 class EventService
@@ -43,11 +44,13 @@ class EventService
         $this->security = $security;
     }
 
+    // Get all events
     public function findAll(): array
     {
         return $this->eventRepository->findAll();
     }
 
+    // Get a single event
     public function find(int $id): Event
     {
         $event = $this->eventRepository->find($id);
@@ -59,6 +62,7 @@ class EventService
         return $event;
     }
 
+    // Create a new event
     public function create(string $requestData): Event
     {
         $requestData = json_decode($requestData, true);
@@ -68,9 +72,9 @@ class EventService
         $event->setDescription($requestData['description'] ?? null);
         $event->setStartAt(new \DateTimeImmutable($requestData['start_at']));
 
-        $cityId = $this->getCityById($requestData['city_id']);
-        $categoryId = $this->getCategoryById($requestData['category_id']);
-        $countryId = $this->getCountryById($requestData['country_id']);
+        $cityId = $this->cityService->find($requestData['city_id']);
+        $categoryId = $this->categoryService->find($requestData['category_id']);
+        $countryId = $this->countryService->find($requestData['country_id']);
 
         $event->setCity($cityId);
         $event->setCategory($categoryId);
@@ -100,6 +104,7 @@ class EventService
         return $event;
     }
 
+    // Update an event
     public function update(int $id, string $requestData): Event
     {
         $requestData = json_decode($requestData, true);
@@ -144,6 +149,7 @@ class EventService
         return $event;
     }
 
+    // Delete an event
     public function delete(int $id): void
     {
         $event = $this->find($id);
@@ -156,6 +162,7 @@ class EventService
         $this->entityManager->flush();
     }
 
+    // Add a participant to an event
     public function addParticipant(int $eventId): Event
     {
         $user = $this->security->getUser();
@@ -187,6 +194,7 @@ class EventService
         return $event;
     }
 
+    // Remove a participant from an event
     public function removeParticipant(int $eventId): Event
     {
         $user = $this->security->getUser();
@@ -208,30 +216,15 @@ class EventService
         return $event;
     }
 
-    public function getCityById(int $id): City
+    // Get all events created by the currently logged in user
+    public function findByCreator(UserInterface $user): array
     {
-        if (!$this->cityService->find($id)) {
-            throw new NotFoundHttpException('City not found.');
-        }
-
-        return $this->cityService->find($id);
+        return $this->eventRepository->findByCreatorQuery($user);
     }
 
-    public function getCategoryById(int $id): Category
+    // Get all events that the currently logged in user is participating in
+    public function findByParticipant(UserInterface $user): array
     {
-        if (!$this->categoryService->find($id)) {
-            throw new NotFoundHttpException('Category not found.');
-        }
-
-        return $this->categoryService->find($id);
-    }
-
-    public function getCountryById(int $id): Country
-    {
-        if (!$this->countryService->find($id)) {
-            throw new NotFoundHttpException('Country not found.');
-        }
-
-        return $this->countryService->find($id);
+        return $this->eventRepository->findByParticipantQuery($user);
     }
 }

@@ -39,4 +39,22 @@ class UserController extends AbstractController
             return $this->json(['error' => $e->getMessage()], 500);
         }
     }
+
+    // update the user
+    #[Route('/{id}', name: 'update', methods: ['PATCH'])]
+    public function update(int $id, Request $request, UserService $userService, SerializerInterface $serializer): JsonResponse
+    {
+        try {
+            $currentUser = $this->getUser();
+            if ($currentUser->getId() !== $id) {
+                return $this->json(['error' => 'You are not allowed to update this user'], 403);
+            }
+
+            $updatedUser = $userService->update($id, $request->getContent());
+            $jsonContent = $serializer->serialize($updatedUser, 'json', ['groups' => 'getUser']);
+            return new JsonResponse($jsonContent, 200, [], true);
+        } catch (\Exception $e) {
+            return $this->json(['error' => $e->getMessage()], 500);
+        }
+    }
 }
