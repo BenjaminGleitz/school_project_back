@@ -87,4 +87,15 @@ class CategoryService
         $this->entityManager->remove($category);
         $this->entityManager->flush();
     }
+
+    public function getCategoryById(int $id): Category
+    {
+        $category = $this->categoryRepository->find($id);
+
+        if (!$category) {
+            throw new NotFoundHttpException('Category not found.');
+        }
+
+        return $category;
+    }
 }

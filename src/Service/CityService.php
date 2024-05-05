@@ -94,7 +94,7 @@ class CityService
         return $city;
     }
 
-// function to delete a city
+    // function to delete a city
     public function delete(int $id): void
     {
         $city = $this->find($id);
@@ -103,4 +103,15 @@ class CityService
         $this->entityManager->flush();
     }
 
+    // get city by id
+    public function getCityById(int $cityId): City
+    {
+        $city = $this->cityRepository->find($cityId);
+
+        if (!$city) {
+            throw new NotFoundHttpException('City not found.');
+        }
+
+        return $city;
+    }
 }
