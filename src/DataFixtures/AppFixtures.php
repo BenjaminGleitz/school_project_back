@@ -83,7 +83,7 @@ class AppFixtures extends Fixture {
 
         $usersObjectList = [];
 
-        for ($i = 1; $i <= 10; $i++) {
+        for ($i = 1; $i <= 50; $i++) {
             $user = new User();
             $user->setEmail('user' . $i . '@example.com');
             $password = 'password';
@@ -104,7 +104,7 @@ class AppFixtures extends Fixture {
 
         $currentDateTime = new \DateTimeImmutable();
 
-        for ($i = 1; $i <= 20; $i++) {
+        for ($i = 1; $i <= 100; $i++) {
             $startDate = $currentDateTime->add(new \DateInterval('P' . mt_rand(1, 30) . 'D'));
 
             $event = new Event();
