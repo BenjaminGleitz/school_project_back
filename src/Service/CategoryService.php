@@ -98,4 +98,15 @@ class CategoryService
 
         return $category;
     }
+
+    public function getCategoryByTitle(string $title): Category
+    {
+        $category = $this->categoryRepository->findOneBy(['title' => $title]);
+
+        if (!$category) {
+            throw new NotFoundHttpException('Category not found.');
+        }
+
+        return $category;
+    }
 }

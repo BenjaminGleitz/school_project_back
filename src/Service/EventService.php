@@ -227,4 +227,16 @@ class EventService
     {
         return $this->eventRepository->findByParticipantQuery($user);
     }
+
+    // Get all events in a city
+    public function findByCity(City $city): array
+    {
+        return $this->eventRepository->findByCityQuery($city);
+    }
+
+    // Get all filtered events by country, city, category, and date
+    public function findByFilters(Country $country, ?City $city, ?Category $category, ?\DateTimeImmutable $date): array
+    {
+        return $this->eventRepository->findByFilters($country, $city, $category, $date);
+    }
 }
