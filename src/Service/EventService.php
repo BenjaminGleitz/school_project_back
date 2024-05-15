@@ -74,18 +74,17 @@ class EventService
 
         $cityId = $this->cityService->find($requestData['city_id']);
         $categoryId = $this->categoryService->find($requestData['category_id']);
-        $countryId = $this->countryService->find($requestData['country_id']);
 
         $event->setCity($cityId);
         $event->setCategory($categoryId);
-        $event->setCountry($countryId);
+        $event->setCountry($cityId->getCountry());
         $event->setCreator($this->security->getUser());
 
         if (isset($requestData['participantLimit'])) {
             $event->setParticipantLimit($requestData['participantLimit']);
         }
 
-        if ($cityId->getCountry()->getId() != $countryId->getId()) {
+        if ($event->getCity()->getCountry()->getId() != $event->getCountry()->getId()) {
             throw new BadRequestHttpException('City does not belong to the country.');
         }
 
@@ -134,6 +133,8 @@ class EventService
             }
             $event->setCountry($this->entityManager->getReference('App\Entity\Country', $requestData['country_id']));
         }
+
+        $event->setUpdatedAt(new \DateTimeImmutable());
 
         $violations = $this->validator->validate($event);
         if (count($violations) > 0) {
