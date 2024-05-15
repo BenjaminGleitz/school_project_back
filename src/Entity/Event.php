@@ -49,7 +49,6 @@ class Event
     private ?\DateTimeImmutable $start_at = null;
 
     #[ORM\ManyToOne(inversedBy: 'events')]
-    #[Assert\NotBlank(message: 'Country is required.')]
     #[Groups(["getCategory", "getOneEvent"])]
     #[ORM\JoinColumn(nullable: true)]
     private ?Country $country = null;
@@ -67,8 +66,17 @@ class Event
     #[Groups(["getOneEvent"])]
     private ?int $participantLimit = null;
 
+    #[ORM\Column]
+    #[Groups(["getEvent", "getOneEvent"])]
+    private ?\DateTimeImmutable $createdAt = null;
+
+    #[ORM\Column(nullable: true)]
+    #[Groups(["getEvent", "getOneEvent"])]
+    private ?\DateTimeImmutable $updatedAt = null;
+
     public function __construct()
     {
+        $this->createdAt = new \DateTimeImmutable();
         $this->participant = new ArrayCollection();
     }
 
@@ -197,6 +205,30 @@ class Event
     public function setParticipantLimit(?int $participantLimit): static
     {
         $this->participantLimit = $participantLimit;
+
+        return $this;
+    }
+
+    public function getCreatedAt(): ?\DateTimeImmutable
+    {
+        return $this->createdAt;
+    }
+
+    public function setCreatedAt(\DateTimeImmutable $createdAt): static
+    {
+        $this->createdAt = $createdAt;
+
+        return $this;
+    }
+
+    public function getUpdatedAt(): ?\DateTimeImmutable
+    {
+        return $this->updatedAt;
+    }
+
+    public function setUpdatedAt(?\DateTimeImmutable $updatedAt): static
+    {
+        $this->updatedAt = $updatedAt;
 
         return $this;
     }

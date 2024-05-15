@@ -2,7 +2,10 @@
 
 namespace App\Controller\API;
 
+use App\Service\CountryService;
 use App\Service\EventService;
+use App\Service\CityService;
+use App\Service\CategoryService;
 use App\Service\UserService;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Bundle\SecurityBundle\Security;
@@ -153,6 +156,65 @@ class EventController extends AbstractController
             return new JsonResponse($data, 200, [], true);
         } catch (NotFoundHttpException $e) {
             return $this->json(['error' => $e->getMessage()], 404);
+        } catch (\Exception $e) {
+            return $this->json(['error' => $e->getMessage()], 500);
+        }
+    }
+
+    // Get all events by the favorite city of the currently logged in user
+    #[Route('/my/favorite-city/events', name: 'my_favorite_city_events', methods: ['GET'])]
+    public function getEventsByFavoriteCity(EventService $eventService, SerializerInterface $serializer, Security $security): JsonResponse
+    {
+        try {
+            $currentUser = $security->getUser();
+            $events = $eventService->findByCity($currentUser->getFavoriteCity());
+            $data = $serializer->serialize($events, 'json', ['groups' => 'getEvent']);
+            return new JsonResponse($data, 200, [], true);
+        } catch (NotFoundHttpException $e) {
+            return $this->json(['error' => $e->getMessage()], 404);
+        } catch (\Exception $e) {
+            return $this->json(['error' => $e->getMessage()], 500);
+        }
+    }
+
+// Récupérer les événements en fonction des filtres
+    #[Route('/filter/event', name: 'filtered_events', methods: ['POST'])]
+    public function getFilteredEvents(Request $request, CategoryService $categoryService,EventService $eventService, CountryService $countryService, CityService $cityService, SerializerInterface $serializer): JsonResponse
+    {
+        try {
+            $requestData = json_decode($request->getContent(), true);
+            $jsonContent = $serializer->serialize($requestData, 'json', ['groups' => 'getOneEvent']);
+
+            //country filter
+            $country = $requestData['country'] ?? null;
+            if (!$country) {
+                throw new \Exception('Country is required.');
+            }
+
+            $country = $countryService->findByName($country);
+
+            //city filter
+            $city = $requestData['city'] ?? null;
+            if ($city && $city !== "") {
+                $city = $cityService->getCityByName($city);
+            }
+
+            //category filter
+            $category = $requestData['category'] ?? null;
+            if ($category && $category !== "") {
+                $category = $categoryService->getCategoryByTitle($category);
+            }
+
+            //date filter
+            $date = $requestData['date'] ?? null;
+            if ($date && $date !== "") {
+                $date = new \DateTimeImmutable($date);
+            }
+
+            $filteredEvents = $eventService->findByFilters($country, $city, $category, $date);
+
+            $data = $serializer->serialize($filteredEvents, 'json', ['groups' => 'getEvent']);
+            return new JsonResponse($data, 200, [], true);
         } catch (\Exception $e) {
             return $this->json(['error' => $e->getMessage()], 500);
         }

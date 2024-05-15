@@ -82,4 +82,16 @@ class CountryService
         $this->entityManager->remove($country);
         $this->entityManager->flush();
     }
+
+    //get country by name
+    public function findByName(string $name): Country
+    {
+        $country = $this->countryRepository->findOneBy(['name' => $name]);
+
+        if (!$country) {
+            throw new NotFoundHttpException('Country not found.');
+        }
+
+        return $country;
+    }
 }

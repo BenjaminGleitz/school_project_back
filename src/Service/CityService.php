@@ -114,4 +114,16 @@ class CityService
 
         return $city;
     }
+
+    // get city by name
+    public function getCityByName(string $cityName): City
+    {
+        $city = $this->cityRepository->findOneBy(['name' => $cityName]);
+
+        if (!$city) {
+            throw new NotFoundHttpException('City not found.');
+        }
+
+        return $city;
+    }
 }

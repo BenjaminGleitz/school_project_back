@@ -55,7 +55,6 @@ security:
     access_control:
         - { path: ^/api/country, roles: PUBLIC_ACCESS, methods: GET }
         - { path: ^/api/login, roles: IS_AUTHENTICATED_ANONYMOUSLY }
-        - { path: ^/api/user, roles: ROLE_ADMIN }
         - { path: ^/api/, roles: ROLE_USER }
 
 when@test:
