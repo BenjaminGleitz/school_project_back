@@ -20,7 +20,7 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
     #[ORM\Id]
     #[ORM\GeneratedValue]
     #[ORM\Column]
-    #[Groups(["getUser", "getEvent", "getOneEvent"])]
+    #[Groups(["getUser", "getEvent", "getOneEvent", "getParticipant"])]
     private ?int $id = null;
 
     #[ORM\Column(length: 180)]
@@ -51,12 +51,12 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
     private Collection $events;
 
     #[ORM\Column(length: 255)]
-    #[Groups(["getUser", "getOneEvent"])]
+    #[Groups(["getUser", "getOneEvent", "getParticipant"])]
     #[Assert\NotBlank(message: 'Firstname is required.')]
     private ?string $firstname = null;
 
     #[ORM\Column(length: 255)]
-    #[Groups(["getUser", "getOneEvent"])]
+    #[Groups(["getUser", "getOneEvent", "getParticipant"])]
     #[Assert\NotBlank(message: 'Lastname is required.')]
     private ?string $lastname = null;
 
