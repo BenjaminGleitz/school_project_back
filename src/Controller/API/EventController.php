@@ -179,7 +179,7 @@ class EventController extends AbstractController
 
 // Récupérer les événements en fonction des filtres
     #[Route('/filter/event', name: 'filtered_events', methods: ['POST'])]
-    public function getFilteredEvents(Request $request, CategoryService $categoryService,EventService $eventService, CountryService $countryService, CityService $cityService, SerializerInterface $serializer): JsonResponse
+    public function getFilteredEvents(Request $request, CategoryService $categoryService, EventService $eventService, CountryService $countryService, CityService $cityService, SerializerInterface $serializer): JsonResponse
     {
         try {
             $requestData = json_decode($request->getContent(), true);
@@ -215,6 +215,22 @@ class EventController extends AbstractController
 
             $data = $serializer->serialize($filteredEvents, 'json', ['groups' => 'getEvent']);
             return new JsonResponse($data, 200, [], true);
+        } catch (\Exception $e) {
+            return $this->json(['error' => $e->getMessage()], 500);
+        }
+    }
+
+    // get the participant list of an event
+    #[Route('/{id}/participants', name: 'participants', methods: ['GET'])]
+    public function getParticipants(int $id, EventService $eventService, SerializerInterface $serializer): JsonResponse
+    {
+        try {
+            $event = $eventService->find($id);
+            $participants = $event->getParticipant();
+            $data = $serializer->serialize($participants, 'json', ['groups' => 'getParticipant']);
+            return new JsonResponse($data, 200, [], true);
+        } catch (NotFoundHttpException $e) {
+            return $this->json(['error' => $e->getMessage()], 404);
         } catch (\Exception $e) {
             return $this->json(['error' => $e->getMessage()], 500);
         }
