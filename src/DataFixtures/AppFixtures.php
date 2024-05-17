@@ -25,6 +25,9 @@ class AppFixtures extends Fixture {
 
     public function load(ObjectManager $manager) {
 
+        // Augmenter la limite de mémoire
+        ini_set('memory_limit', '256M');
+
         // countries
 
         $countriesList = $this->callApiService->getCountriesData();
@@ -47,6 +50,10 @@ class AppFixtures extends Fixture {
                 $cityObjectList[] = $city;
                 $manager->persist($city);
             }
+
+            // Libérer la mémoire
+            unset($citiesList);
+            unset($country);
         }
 
         // categories
@@ -104,38 +111,46 @@ class AppFixtures extends Fixture {
 
         $currentDateTime = new \DateTimeImmutable();
 
-        for ($i = 1; $i <= 100; $i++) {
-            $startDate = $currentDateTime->add(new \DateInterval('P' . mt_rand(1, 30) . 'D'));
+        foreach ($cityObjectList as $city) {
+            for ($i = 1; $i <= 2; $i++) {
+                $startDate = $currentDateTime->add(new \DateInterval('P' . mt_rand(1, 30) . 'D'));
 
-            $event = new Event();
-            $event->setTitle('Event ' . $i);
-            $event->setStartAt($startDate);
-            $event->setDescription('Description de l\'événement Description de l\'événement Description de l\'événement Description de l\'événement ' . $i);
-            $event->setCity($cityObjectList[array_rand($cityObjectList)]);
-            $event->setCountry($event->getCity()->getCountry());
-            $event->setCategory($categoriesObjectsList[array_rand($categoriesObjectsList)]);
-            $creator = $usersObjectList[array_rand($usersObjectList)];
-            $event->setCreator($creator);
-            $event->setParticipantLimit(mt_rand(5, 20));
-            $event->setCreatedAt(new \DateTimeImmutable());
-            $manager->persist($event);
+                $event = new Event();
+                $event->setTitle('Event ' . $i . ' for ' . $city->getName());
+                $event->setStartAt($startDate);
+                $event->setDescription('Description de l\'événement ' . $i . ' in ' . $city->getName());
+                $event->setCity($city);
+                $event->setCountry($city->getCountry());
+                $event->setCategory($categoriesObjectsList[array_rand($categoriesObjectsList)]);
+                $creator = $usersObjectList[array_rand($usersObjectList)];
+                $event->setCreator($creator);
+                $event->setParticipantLimit(mt_rand(5, 20));
+                $event->setCreatedAt(new \DateTimeImmutable());
+                $event->addParticipant($creator);
+                $event->setStatus('OPEN');
+                $manager->persist($event);
 
-            // Ajouter entre 1 et 5 participants (autres que le créateur)
-            $numParticipants = mt_rand(1, 5);
-            $participants = [];
-            while (count($participants) < $numParticipants) {
-                $randomUser = $usersObjectList[array_rand($usersObjectList)];
-                if ($randomUser !== $creator && !in_array($randomUser, $participants)) {
-                    $participants[] = $randomUser;
+                // Ajouter entre 1 et 5 participants (autres que le créateur)
+                $numParticipants = mt_rand(1, 5);
+                $participants = [];
+                while (count($participants) < $numParticipants) {
+                    $randomUser = $usersObjectList[array_rand($usersObjectList)];
+                    if ($randomUser !== $creator && !in_array($randomUser, $participants)) {
+                        $participants[] = $randomUser;
+                    }
                 }
-            }
 
-            foreach ($participants as $participant) {
-                $event->addParticipant($participant);
+                foreach ($participants as $participant) {
+                    $event->addParticipant($participant);
+                }
             }
         }
 
-        $manager->flush();
+        // Libérer la mémoire des listes temporaires
+        unset($cityObjectList);
+        unset($usersObjectList);
+        unset($categoriesObjectsList);
 
+        $manager->flush();
     }
 }

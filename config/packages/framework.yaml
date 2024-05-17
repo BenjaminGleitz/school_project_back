@@ -9,6 +9,9 @@ framework:
     #esi: true
     #fragments: true
 
+parameters:
+    timezone: 'Europe/Paris' # Changez selon votre fuseau horaire
+
 when@test:
     framework:
         test: true

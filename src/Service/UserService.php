@@ -88,6 +88,8 @@ class UserService
             throw new BadRequestHttpException(json_encode($errors));
         }
 
+        $user->setUpdatedAt(new \DateTimeImmutable());
+
         $this->entityManager->persist($user);
         $this->entityManager->flush();
 
