@@ -63,7 +63,7 @@ class Event
     private Collection $participant;
 
     #[ORM\Column(nullable: true)]
-    #[Groups(["getOneEvent"])]
+    #[Groups(["getOneEvent", "getEvent"])]
     private ?int $participantLimit = null;
 
     #[ORM\Column]
@@ -74,10 +74,15 @@ class Event
     #[Groups(["getEvent", "getOneEvent"])]
     private ?\DateTimeImmutable $updatedAt = null;
 
+    #[ORM\Column(length: 10)]
+    #[Groups(["getEvent", "getOneEvent"])]
+    private ?string $status = null;
+
     public function __construct()
     {
         $this->createdAt = new \DateTimeImmutable();
         $this->participant = new ArrayCollection();
+        $this->status = 'OPEN';
     }
 
     public function getId(): ?int
@@ -229,6 +234,18 @@ class Event
     public function setUpdatedAt(?\DateTimeImmutable $updatedAt): static
     {
         $this->updatedAt = $updatedAt;
+
+        return $this;
+    }
+
+    public function getStatus(): ?string
+    {
+        return $this->status;
+    }
+
+    public function setStatus(string $status): static
+    {
+        $this->status = $status;
 
         return $this;
     }

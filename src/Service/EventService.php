@@ -21,6 +21,7 @@ class EventService
     private $entityManager;
     private $cityService;
     private $categoryService;
+    private $userService;
     private $countryService;
     private $validator;
     private $security;
@@ -32,7 +33,8 @@ class EventService
         CategoryService        $categoryService,
         ValidatorInterface     $validator,
         CountryService         $countryService,
-        Security               $security
+        Security               $security,
+        UserService            $userService
     )
     {
         $this->eventRepository = $eventRepository;
@@ -42,12 +44,15 @@ class EventService
         $this->validator = $validator;
         $this->countryService = $countryService;
         $this->security = $security;
+        $this->userService = $userService;
     }
 
     // Get all events
     public function findAll(): array
     {
-        return $this->eventRepository->findAll();
+        $events = $this->eventRepository->findAll();
+        $this->updateEventStatuses($events);
+        return $events;
     }
 
     // Get a single event
@@ -58,6 +63,8 @@ class EventService
         if (!$event) {
             throw new NotFoundHttpException('Event not found.');
         }
+
+        $this->updateEventStatus($event);
 
         return $event;
     }
@@ -74,11 +81,15 @@ class EventService
 
         $cityId = $this->cityService->find($requestData['city_id']);
         $categoryId = $this->categoryService->find($requestData['category_id']);
+        $creatorId = $this->security->getUser()->getId();
+        $creator = $this->userService->find($creatorId);
 
         $event->setCity($cityId);
         $event->setCategory($categoryId);
         $event->setCountry($cityId->getCountry());
         $event->setCreator($this->security->getUser());
+        $event->setCreatedAt(new \DateTimeImmutable());
+        $event->addParticipant($creator);
 
         if (isset($requestData['participantLimit'])) {
             $event->setParticipantLimit($requestData['participantLimit']);
@@ -147,6 +158,8 @@ class EventService
 
         $this->entityManager->flush();
 
+        $this->updateEventStatus($event);
+
         return $event;
     }
 
@@ -192,6 +205,8 @@ class EventService
         $event->addParticipant($user);
         $this->entityManager->flush();
 
+        $this->updateEventStatus($event);
+
         return $event;
     }
 
@@ -214,30 +229,79 @@ class EventService
         $event->removeParticipant($user);
         $this->entityManager->flush();
 
+        $this->updateEventStatus($event);
+
         return $event;
     }
 
     // Get all events created by the currently logged in user
     public function findByCreator(UserInterface $user): array
     {
-        return $this->eventRepository->findByCreatorQuery($user);
+        $events = $this->eventRepository->findByCreatorQuery($user);
+        $this->updateEventStatuses($events);
+        return $events;
     }
 
     // Get all events that the currently logged in user is participating in
     public function findByParticipant(UserInterface $user): array
     {
-        return $this->eventRepository->findByParticipantQuery($user);
+        $events = $this->eventRepository->findByParticipantQuery($user);
+        $this->updateEventStatuses($events);
+        return $events;
     }
 
     // Get all events in a city
     public function findByCity(City $city): array
     {
-        return $this->eventRepository->findByCityQuery($city);
+        $events = $this->eventRepository->findByCityQuery($city);
+        $this->updateEventStatuses($events);
+        return $events;
     }
 
     // Get all filtered events by country, city, category, and date
     public function findByFilters(Country $country, ?City $city, ?Category $category, ?\DateTimeImmutable $date): array
     {
-        return $this->eventRepository->findByFilters($country, $city, $category, $date);
+        $events = $this->eventRepository->findByFilters($country, $city, $category, $date);
+        $this->updateEventStatuses($events);
+        return $events;
     }
+
+    private function updateEventStatuses(array $events): void
+    {
+        foreach ($events as $event) {
+            $this->updateEventStatus($event);
+        }
+    }
+
+    private function updateEventStatus(Event $event): void
+    {
+        $timezone = new \DateTimeZone('Europe/Paris');
+        $now = new \DateTimeImmutable('now', $timezone);
+
+        // Ajouter 30 minutes à l'heure de début de l'événement
+        $eventStartAtPlus30Minutes = $event->getStartAt()->add(new \DateInterval('PT10M'));
+
+        // Formatter les dates pour le log (facultatif)
+        $eventStartAtFormatted = $event->getStartAt()->format('Y-m-d H:i:s');
+        $eventStartAtPlus30MinutesFormatted = $eventStartAtPlus30Minutes->format('Y-m-d H:i:s');
+        $nowFormatted = $now->format('Y-m-d H:i:s');
+
+        // Logs pour le débogage
+        error_log("Event Start At: $eventStartAtFormatted");
+        error_log("Event Start At + 30 minutes: $eventStartAtPlus30MinutesFormatted");
+        error_log("Current Time: $nowFormatted");
+
+        // Mettre à jour le statut à "CLOSED" si l'heure actuelle est après l'heure de début de l'événement + 30 minutes
+        if ($event->getStatus() !== 'CLOSED' && $now > $eventStartAtPlus30Minutes) {
+            $event->setStatus('CLOSED');
+            $this->entityManager->persist($event);
+            $this->entityManager->flush();
+        }
+    }
+
+
+
+
+
+
 }

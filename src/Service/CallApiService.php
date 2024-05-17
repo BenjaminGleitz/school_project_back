@@ -19,7 +19,7 @@ class CallApiService
     {
         $response = $this->client->request(
             'GET',
-            'https://spott.p.rapidapi.com/places/autocomplete?type=COUNTRY&limit=5',
+            'https://spott.p.rapidapi.com/places/autocomplete?type=COUNTRY&limit=35',
             [
                 'headers' => [
                     'x-rapidapi-host' => 'spott.p.rapidapi.com',
@@ -35,7 +35,7 @@ class CallApiService
     {
         $response = $this->client->request(
             'GET',
-            'https://spott.p.rapidapi.com/places/autocomplete?country=' . $countryCode . '&type=CITY&limit=5',
+            'https://spott.p.rapidapi.com/places/autocomplete?country=' . $countryCode . '&type=CITY&limit=15',
             [
                 'headers' => [
                     'x-rapidapi-host' => 'spott.p.rapidapi.com',
