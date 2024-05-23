@@ -72,6 +72,21 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
     #[Groups(["getUser"])]
     private ?City $favoriteCity = null;
 
+    #[ORM\Column]
+    #[Assert\NotBlank(message: 'Birthdate is required.')]
+    #[Assert\LessThan('today', message: 'Birthdate must be in the past.')]
+    #[Groups(["getUser"])]
+    private ?\DateTimeImmutable $birthdate = null;
+
+
+    #[ORM\Column(length: 255, nullable: true)]
+    #[Groups(["getUser"])]
+    private ?string $nationality = null;
+
+    #[ORM\Column(length: 255)]
+    #[Groups(["getUser"])]
+    private ?string $gender = null;
+
     public function __construct()
     {
         $this->eventsCreated = new ArrayCollection();
@@ -279,6 +294,42 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
     public function setFavoriteCity(?City $favoriteCity): static
     {
         $this->favoriteCity = $favoriteCity;
+
+        return $this;
+    }
+
+    public function getBirthdate(): ?\DateTimeImmutable
+    {
+        return $this->birthdate;
+    }
+
+    public function setBirthdate(\DateTimeImmutable $birthdate): static
+    {
+        $this->birthdate = $birthdate;
+
+        return $this;
+    }
+
+    public function getNationality(): ?string
+    {
+        return $this->nationality;
+    }
+
+    public function setNationality(?string $nationality): static
+    {
+        $this->nationality = $nationality;
+
+        return $this;
+    }
+
+    public function getGender(): ?string
+    {
+        return $this->gender;
+    }
+
+    public function setGender(string $gender): static
+    {
+        $this->gender = $gender;
 
         return $this;
     }

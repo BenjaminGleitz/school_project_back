@@ -28,6 +28,9 @@ class RegistrationController extends AbstractController
             $user->setRoles($data['roles'] ?? []);
             $user->setFirstname($data['firstname'] ?? '');
             $user->setLastname($data['lastname'] ?? '');
+            $user->setGender($data['gender'] ?? '');
+            $user->setNationality($data['nationality'] ?? '');
+            $user->setBirthdate(new \DateTimeImmutable($data['birthdate'] ?? ''));
             $user->setCreatedAt(new \DateTimeImmutable());
 
             $favoriteCity = $data['favoriteCity'] ?? null;

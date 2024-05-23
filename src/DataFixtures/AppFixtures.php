@@ -61,16 +61,11 @@ class AppFixtures extends Fixture {
         $categories = [
             'Sport',
             'Culture',
-            'Festif',
-            'Rencontre',
+            'Party',
+            'Meet',
             'Nature',
-            'Entraide',
-            'Bien-être',
-            'Éducatif',
-            'Musique',
-            'Loisirs créatifs',
-            'Adrénaline',
-            'Gastronomie',
+            'Food Lover',
+            'Music',
         ];
 
         print "Création des catégories en cours ...";
@@ -89,6 +84,7 @@ class AppFixtures extends Fixture {
         print "Création des users en cours ...";
 
         $usersObjectList = [];
+        $gender = ['man', 'woman', 'non-binary'];
 
         for ($i = 1; $i <= 50; $i++) {
             $user = new User();
@@ -100,6 +96,10 @@ class AppFixtures extends Fixture {
             $user->setFirstname('Firstname' . $i);
             $user->setLastname('Lastname' . $i);
             $user->setCreatedAt(new \DateTimeImmutable());
+            $user->setNationality('french');
+            $user->setGender($gender[array_rand($gender)]);
+            $user->setBirthdate(new \DateTimeImmutable('1980-01-01'));
+
             $user->setFavoriteCity($cityObjectList[array_rand($cityObjectList)]);
             $usersObjectList[] = $user;
             $manager->persist($user);
