@@ -12,14 +12,19 @@ use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\Serializer\SerializerInterface;
 use Symfony\Component\Validator\Validator\ValidatorInterface;
+use Symfony\Component\String\Slugger\SluggerInterface;
 
 class RegistrationController extends AbstractController
 {
     #[Route("/userRegister", name: "new", methods: ["POST"])]
-    public function register(Request $request, UserPasswordHasherInterface $passwordHasher, EntityManagerInterface $entityManager, ValidatorInterface $validator, SerializerInterface $serializer): JsonResponse
+    public function register(Request $request, UserPasswordHasherInterface $passwordHasher, EntityManagerInterface $entityManager, ValidatorInterface $validator, SerializerInterface $serializer, SluggerInterface $slugger): JsonResponse
     {
         try {
-            $data = json_decode($request->getContent(), true);
+            // Pour les données JSON
+            $data = $request->request->all();
+
+            // Pour les fichiers
+            $imageFile = $request->files->get('imageFile');
 
             $user = new User();
             $user->setEmail($data['email'] ?? '');
@@ -40,6 +45,11 @@ class RegistrationController extends AbstractController
                     return new JsonResponse(['error' => 'City not found'], 404);
                 }
                 $user->setFavoriteCity($city);
+            }
+
+            // Gestion de l'upload de l'image
+            if ($imageFile) {
+                $user->setImageFile($imageFile);
             }
 
             $violations = $validator->validate($user);
