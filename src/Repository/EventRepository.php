@@ -30,7 +30,9 @@ class EventRepository extends ServiceEntityRepository
     {
         return $this->createQueryBuilder('e')
             ->andWhere(':participant MEMBER OF e.participant')
+            ->andWhere('e.status = :status')
             ->setParameter('participant', $participant)
+            ->setParameter('status', 'OPEN')
             ->getQuery()
             ->getResult();
     }
@@ -40,7 +42,9 @@ class EventRepository extends ServiceEntityRepository
     {
         return $this->createQueryBuilder('e')
             ->andWhere('e.creator = :creator')
+            ->andWhere('e.status = :status')
             ->setParameter('creator', $creator)
+            ->setParameter('status', 'OPEN')
             ->getQuery()
             ->getResult();
     }
@@ -50,7 +54,9 @@ class EventRepository extends ServiceEntityRepository
     {
         return $this->createQueryBuilder('e')
             ->andWhere('e.city = :city')
+            ->andWhere('e.status = :status')
             ->setParameter('city', $city)
+            ->setParameter('status', 'OPEN')
             ->getQuery()
             ->getResult();
     }
@@ -58,7 +64,9 @@ class EventRepository extends ServiceEntityRepository
 // Récupérer les événements en fonction des filtres
     public function findByFilters(Country $country, ?City $city, ?Category $category, ?\DateTimeImmutable $date): array
     {
-        $queryBuilder = $this->createQueryBuilder('e');
+        $queryBuilder = $this->createQueryBuilder('e')
+        ->andWhere('e.status = :status')
+        ->setParameter('status', 'OPEN');
 
         // Ajoutez la clause WHERE pour le pays si spécifié
         if ($country) {

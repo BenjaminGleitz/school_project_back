@@ -22,7 +22,6 @@ class EventService
     private $cityService;
     private $categoryService;
     private $userService;
-    private $countryService;
     private $validator;
     private $security;
 
@@ -32,7 +31,6 @@ class EventService
         CityService            $cityService,
         CategoryService        $categoryService,
         ValidatorInterface     $validator,
-        CountryService         $countryService,
         Security               $security,
         UserService            $userService
     )
@@ -42,7 +40,6 @@ class EventService
         $this->cityService = $cityService;
         $this->categoryService = $categoryService;
         $this->validator = $validator;
-        $this->countryService = $countryService;
         $this->security = $security;
         $this->userService = $userService;
     }
@@ -50,7 +47,7 @@ class EventService
     // Get all events
     public function findAll(): array
     {
-        $events = $this->eventRepository->findAll();
+        $events = $this->eventRepository->findBy(['status' => 'OPEN']);
         $this->updateEventStatuses($events);
         return $events;
     }
@@ -298,10 +295,4 @@ class EventService
             $this->entityManager->flush();
         }
     }
-
-
-
-
-
-
 }

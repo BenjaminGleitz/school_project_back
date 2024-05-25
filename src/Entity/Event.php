@@ -59,7 +59,7 @@ class Event
     private ?User $creator = null;
 
     #[ORM\ManyToMany(targetEntity: User::class, inversedBy: 'events')]
-    #[Groups(["getOneEvent", "getOneEvent", "getParticipant"])]
+    #[Groups(["getEvent", "getOneEvent", "getParticipant"])]
     private Collection $participant;
 
     #[ORM\Column(nullable: true)]
