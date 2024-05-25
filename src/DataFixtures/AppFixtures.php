@@ -64,7 +64,7 @@ class AppFixtures extends Fixture {
             'Party',
             'Meet',
             'Nature',
-            'Food Lover',
+            'Restaurant',
             'Music',
         ];
 
