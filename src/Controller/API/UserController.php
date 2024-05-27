@@ -57,4 +57,19 @@ class UserController extends AbstractController
             return $this->json(['error' => $e->getMessage()], 500);
         }
     }
+
+    //get image of the user
+    #[Route('/{id}/image', name: 'image', methods: ['GET'])]
+    public function image(int $id, UserService $userService): JsonResponse
+    {
+        try {
+            $user = $userService->find($id);
+            $image = $user->getImageUrl();
+            return new JsonResponse($image, 200, [], true);
+        } catch (NotFoundHttpException $e) {
+            return $this->json(['error' => $e->getMessage()], 404);
+        } catch (\Exception $e) {
+            return $this->json(['error' => $e->getMessage()], 500);
+        }
+    }
 }
