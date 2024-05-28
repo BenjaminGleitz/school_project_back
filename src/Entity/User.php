@@ -5,6 +5,7 @@ namespace App\Entity;
 use App\Repository\UserRepository;
 use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\Collection;
+use Doctrine\DBAL\Types\Types;
 use Doctrine\ORM\Mapping as ORM;
 use Symfony\Bridge\Doctrine\Validator\Constraints\UniqueEntity;
 use Symfony\Component\Security\Core\User\PasswordAuthenticatedUserInterface;
@@ -95,6 +96,10 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
 
     #[Vich\UploadableField(mapping: 'user_image', fileNameProperty: 'image')]
     private ?File $imageFile = null;
+
+    #[ORM\Column(type: Types::TEXT, nullable: true)]
+    #[Groups(["getUser"])]
+    private ?string $description = null;
 
     public function __construct()
     {
@@ -370,5 +375,17 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
     public function getImageUrl(): ?string
     {
         return $this->image ? '/images/users/' . $this->image : null;
+    }
+
+    public function getDescription(): ?string
+    {
+        return $this->description;
+    }
+
+    public function setDescription(?string $description): static
+    {
+        $this->description = $description;
+
+        return $this;
     }
 }
