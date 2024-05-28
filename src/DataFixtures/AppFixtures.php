@@ -99,6 +99,7 @@ class AppFixtures extends Fixture {
             $user->setNationality('french');
             $user->setGender($gender[array_rand($gender)]);
             $user->setBirthdate(new \DateTimeImmutable('1980-01-01'));
+            $user->setDescription('Description de l\'utilisateur Description de l\'utilisateur Description de l\'utilisateur Description de l\'utilisateur ' . $i);
 
             $user->setFavoriteCity($cityObjectList[array_rand($cityObjectList)]);
             $usersObjectList[] = $user;
