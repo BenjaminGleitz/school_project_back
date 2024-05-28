@@ -1,0 +1,32 @@
+{% extends 'base.html.twig' %}
+
+{% block stylesheets %}
+    {{ parent() }}
+    <link rel="stylesheet" href="{{ asset('styles/home/home.css') }}">
+{% endblock %}
+
+{% block title %}Hello EventController!{% endblock %}
+
+{% block body %}
+
+    <h2> {{ welcome_message }} </h2>
+
+    <div class="home_link-container">
+
+        <div class="home_link-item">
+            <h3><a href="{{ path('app_category_index') }}">Categories</a></h3>
+        </div>
+
+        <div class="home_link-item">
+            <h3><a href="{{ path('app_city_index') }}">City</a></h3>
+        </div>
+
+        <div class="home_link-item">
+            <h3><a href="{{ path('app_event_index') }}">Events</a></h3>
+        </div>
+
+        <div class="home_link-item">
+            <h3><a href="{{ path('app_country_index') }}">Country</a></h3>
+        </div>
+    </div>
+{% endblock %}

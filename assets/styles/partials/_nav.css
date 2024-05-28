@@ -1,0 +1,122 @@
+.navigation {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 1rem 0;
+    width: 100%;
+    border-bottom: white 1px solid;
+    color: white;
+    font-size: 1.5em;
+}
+
+/*****************************************************
+                        NAV LOGO
+ ****************************************************/
+.nav_logo-container {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 20%;
+}
+
+/*****************************************************
+                        NAV ITEMS
+ ****************************************************/
+.nav_items-container {
+    display: flex;
+    align-items: center;
+    width: 60%;
+    justify-content: center;
+}
+
+.nav_items-list {
+    display: flex;
+    list-style: none;
+    width: 100%;
+    justify-content: space-around;
+}
+
+.nav_items-list li {
+    margin: 0 1rem;
+}
+
+a {
+    text-decoration: none;
+    color: white;
+}
+
+/*****************************************************
+                        USER INFO
+ ****************************************************/
+
+.user_info-container {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 20%;
+}
+
+.connected {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    border-radius: 5px;
+}
+
+.connected-user {
+    font-size: 0.7em;
+    color: white;
+    font-weight: bold;
+}
+
+/* Logout button */
+
+.nav_logout-button {
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+    background-color: red;
+    padding: 0.5rem 1rem;
+    transition: background-color 0.3s;
+}
+
+.nav_logout-button a {
+    color: white;
+    font-weight: bold;
+}
+
+.nav_logout-button:hover {
+    background-color: white;
+}
+
+.nav_logout-button:hover a {
+    color: red;
+}
+
+/* login button */
+
+.nav_login-button {
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+    background-color: #3aa802;
+    padding: 0.5rem 1rem;
+    transition: background-color 0.3s;
+}
+
+.nav_login-button a {
+    color: white;
+    font-weight: bold;
+}
+
+.nav_login-button:hover {
+    background-color: white;
+}
+
+.nav_login-button:hover a {
+    color: #3aa802;
+}
+
+
+
